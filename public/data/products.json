@@ -1,0 +1,106 @@
+{
+  "categories": [
+    {
+      "id": "rings",
+      "name": "Rings",
+      "image": "https://images.unsplash.com/photo-1601121141461-9d664f0c8c6b?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "necklaces",
+      "name": "Necklaces",
+      "image": "https://images.unsplash.com/photo-1520367445093-50dc08a59d9d?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "earrings",
+      "name": "Earrings",
+      "image": "https://images.unsplash.com/photo-1602752250015-6cb9a0f97f8a?auto=format&fit=crop&w=1200&q=80"
+    },
+    {
+      "id": "bracelets",
+      "name": "Bracelets",
+      "image": "https://images.unsplash.com/photo-1611080626919-7cf5a904da09?auto=format&fit=crop&w=1200&q=80"
+    }
+  ],
+  "products": [
+    {
+      "id": "ring-001",
+      "name": "Solace Halo Ring",
+      "categoryId": "rings",
+      "price": 4499,
+      "currency": "INR",
+      "metal": "18K Gold",
+      "image": "https://images.unsplash.com/photo-1608042314453-ae338d80c427?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.7
+    },
+    {
+      "id": "ring-002",
+      "name": "Pearl Whisper Band",
+      "categoryId": "rings",
+      "price": 3299,
+      "currency": "INR",
+      "metal": "Sterling Silver",
+      "image": "https://images.unsplash.com/photo-1603570417594-4fe5fe709e92?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.5
+    },
+    {
+      "id": "neck-001",
+      "name": "Minimal Pearl Strand",
+      "categoryId": "necklaces",
+      "price": 5999,
+      "currency": "INR",
+      "metal": "Freshwater Pearls",
+      "image": "https://images.unsplash.com/photo-1617038260897-41a1f94846ab?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.8
+    },
+    {
+      "id": "neck-002",
+      "name": "Golden Pendant Drop",
+      "categoryId": "necklaces",
+      "price": 4199,
+      "currency": "INR",
+      "metal": "18K Gold",
+      "image": "https://images.unsplash.com/photo-1543295202-1c9f7f40c2b8?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.6
+    },
+    {
+      "id": "ear-001",
+      "name": "Everyday Studs",
+      "categoryId": "earrings",
+      "price": 2199,
+      "currency": "INR",
+      "metal": "Sterling Silver",
+      "image": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.4
+    },
+    {
+      "id": "ear-002",
+      "name": "Dew Drop Earrings",
+      "categoryId": "earrings",
+      "price": 2899,
+      "currency": "INR",
+      "metal": "Gold Plated",
+      "image": "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.3
+    },
+    {
+      "id": "br-001",
+      "name": "Fine Chain Bracelet",
+      "categoryId": "bracelets",
+      "price": 2499,
+      "currency": "INR",
+      "metal": "18K Gold",
+      "image": "https://images.unsplash.com/photo-1603570417594-4fe5fe709e92?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.4
+    },
+    {
+      "id": "br-002",
+      "name": "Pearl Charm Bracelet",
+      "categoryId": "bracelets",
+      "price": 3099,
+      "currency": "INR",
+      "metal": "Freshwater Pearls",
+      "image": "https://images.unsplash.com/photo-1602752250015-6cb9a0f97f8a?auto=format&fit=crop&w=1400&q=80",
+      "rating": 4.5
+    }
+  ]
+}

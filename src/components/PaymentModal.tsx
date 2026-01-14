@@ -1,0 +1,609 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { CheckCircle2, Gift, X, CreditCard, Smartphone } from 'lucide-react'
+import { formatMoney } from '../utils/money'
+import { apiClient } from '../services/apiClient'
+
+declare global {
+    interface Window {
+        Razorpay?: new (options: Record<string, unknown>) => { open: () => void }
+    }
+}
+
+type PaymentMethod = 'upi' | 'cod'
+type UpiProvider = 'gpay' | 'phonepe' | 'paytm' | 'bhim' | 'other'
+
+type AvailableCoupon = {
+    code: string
+    label: string
+    description: string
+}
+
+export default function PaymentModal({
+    open,
+    onClose,
+    onSuccess,
+    total,
+    currency,
+    lines,
+    delivery,
+}: {
+    open: boolean
+    onClose: () => void
+    onSuccess: (order: { orderId: string }) => void
+    total: number
+    currency: string
+    lines: Array<{ productId: string; quantity: number }>
+    delivery: { fullName: string; phone: string; addressLine: string; city: string; pincode: string }
+}) {
+    const prefersReducedMotion = useReducedMotion()
+    const [method, setMethod] = useState<PaymentMethod>('upi')
+    const [upiProvider, setUpiProvider] = useState<UpiProvider>('gpay')
+    const [codConfirmed, setCodConfirmed] = useState(false)
+    const [coupon, setCoupon] = useState('')
+    const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
+    const [discountAmount, setDiscountAmount] = useState(0)
+    const [couponMessage, setCouponMessage] = useState<string | null>(null)
+    const [couponError, setCouponError] = useState<string | null>(null)
+    const [couponsOpen, setCouponsOpen] = useState(false)
+    const [availableCoupons, setAvailableCoupons] = useState<AvailableCoupon[]>([])
+    const [couponsLoading, setCouponsLoading] = useState(false)
+    const [couponsLoadError, setCouponsLoadError] = useState<string | null>(null)
+    const couponsBoxRef = useRef<HTMLDivElement | null>(null)
+    const [placing, setPlacing] = useState(false)
+    const [placeError, setPlaceError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (!open) return
+
+        const prevOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+
+        function onKeyDown(e: KeyboardEvent) {
+            if (e.key === 'Escape') onClose()
+        }
+
+        window.addEventListener('keydown', onKeyDown)
+        return () => {
+            window.removeEventListener('keydown', onKeyDown)
+            document.body.style.overflow = prevOverflow
+        }
+    }, [open, onClose])
+
+    useEffect(() => {
+        if (!couponsOpen) return
+
+        function onDocMouseDown(e: MouseEvent) {
+            const t = e.target as Node | null
+            if (!t) return
+            if (couponsBoxRef.current && !couponsBoxRef.current.contains(t)) {
+                setCouponsOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', onDocMouseDown)
+        return () => document.removeEventListener('mousedown', onDocMouseDown)
+    }, [couponsOpen])
+
+    async function loadAvailableCoupons() {
+        setCouponsLoading(true)
+        setCouponsLoadError(null)
+        try {
+            const { data } = await apiClient.get<AvailableCoupon[]>('/api/coupons')
+            setAvailableCoupons(Array.isArray(data) ? data : [])
+        } catch (_err) {
+            setCouponsLoadError('Failed to load coupons')
+            setAvailableCoupons([])
+        } finally {
+            setCouponsLoading(false)
+        }
+    }
+
+    async function handleApplyCoupon() {
+        const code = coupon.trim().toUpperCase()
+        if (!code) {
+            setAppliedCoupon(null)
+            setDiscountAmount(0)
+            setCouponMessage(null)
+            setCouponError(null)
+            return
+        }
+
+        setCouponMessage(null)
+        setCouponError(null)
+
+        try {
+            const { data } = await apiClient.post<
+                { valid: true; code: string; label: string; discountAmount: number } | { valid: false; message?: string }
+            >('/api/coupons/validate', { code, subtotal: total })
+
+            if (!data.valid) {
+                setAppliedCoupon(null)
+                setDiscountAmount(0)
+                setCouponError(data.message || 'Invalid coupon code')
+                return
+            }
+
+            setAppliedCoupon(data.code)
+            setDiscountAmount(Number(data.discountAmount || 0))
+            setCouponMessage(data.label || 'Coupon applied')
+        } catch (_err) {
+            setAppliedCoupon(null)
+            setDiscountAmount(0)
+            setCouponError('Failed to apply coupon')
+        }
+    }
+
+    const discountedTotal = Math.max(0, total - discountAmount)
+
+    const canProceed = (method === 'upi' ? true : codConfirmed) && !placing
+
+    async function loadRazorpay() {
+        if (typeof window === 'undefined') return false
+        if (window.Razorpay) return true
+
+        await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script')
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+            script.async = true
+            script.onload = () => resolve()
+            script.onerror = () => reject(new Error('Failed to load Razorpay'))
+            document.body.appendChild(script)
+        })
+
+        return Boolean(window.Razorpay)
+    }
+
+    const portalTarget = useMemo(() => {
+        if (typeof document === 'undefined') return null
+        return document.body
+    }, [])
+
+    const modalTree = (
+        <AnimatePresence>
+            {open && (
+                <>
+                    <motion.div
+                        initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+                        animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+                        exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                        className="fixed inset-0 z-40 bg-black/60"
+                        onClick={onClose}
+                    />
+                    <motion.div
+                        initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+                        animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
+                        exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    >
+                        <div className="
+  w-full max-h-[90vh] max-w-lg overflow-auto rounded-3xl border border-brand-200 bg-white shadow-2xl
+
+  scrollbar-thin
+  scrollbar-track-transparent
+  scrollbar-thumb-[#00000020]
+  hover:scrollbar-thumb-[#00000040]
+  scrollbar-thumb-rounded-full
+  transition-colors duration-300
+">
+
+                            <div className="relative border-b border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-6">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="absolute right-4 top-4 rounded-full p-2 text-brand-700 transition hover:bg-brand-100"
+                                    aria-label="Close"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+
+                                <div className="flex items-start gap-3">
+                                    <div className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-900 text-white shadow-soft">
+                                        <CreditCard className="h-5 w-5" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-display text-2xl tracking-wide">Complete Payment</div>
+                                        <div className="mt-1 text-sm text-brand-700">Choose a method, apply offers, and confirm.</div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 rounded-2xl border border-brand-200 bg-white/70 p-4 backdrop-blur">
+                                    <div className="flex items-center justify-between">
+                                        <div className="text-xs font-semibold tracking-[0.16em] text-brand-700">PAYABLE</div>
+                                        <div className="text-lg font-semibold text-brand-900">{formatMoney(discountedTotal, currency)}</div>
+                                    </div>
+                                    {discountAmount > 0 ? (
+                                        <div className="mt-1 text-xs text-green-700">
+                                            Saved {formatMoney(total - discountedTotal, currency)} with {appliedCoupon}
+                                        </div>
+                                    ) : (
+                                        <div className="mt-1 text-xs text-brand-700">Use a coupon to unlock savings.</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-6">
+                                {/* Payment Methods */}
+                                <div className="space-y-3">
+                                    <label className="block cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="payment"
+                                            value="upi"
+                                            checked={method === 'upi'}
+                                            onChange={() => {
+                                                setMethod('upi')
+                                                setCodConfirmed(false)
+                                            }}
+                                            className="sr-only"
+                                        />
+                                        <div
+                                            className={[
+                                                'flex items-center gap-3 rounded-2xl border p-4 transition',
+                                                method === 'upi'
+                                                    ? 'border-brand-300 bg-brand-50'
+                                                    : 'border-brand-200 bg-white hover:bg-brand-50',
+                                            ].join(' ')}
+                                        >
+                                            <Smartphone className="h-5 w-5 text-brand-900" />
+                                            <div className="flex-1">
+                                                <div className="text-sm font-semibold">UPI</div>
+                                                <div className="text-xs text-brand-700">Pay via any UPI app</div>
+                                            </div>
+                                            {method === 'upi' && <CheckCircle2 className="h-5 w-5 text-brand-900" />}
+                                        </div>
+                                    </label>
+
+                                    <label className="block cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="payment"
+                                            value="cod"
+                                            checked={method === 'cod'}
+                                            onChange={() => setMethod('cod')}
+                                            className="sr-only"
+                                        />
+                                        <div
+                                            className={[
+                                                'flex items-center gap-3 rounded-2xl border p-4 transition',
+                                                method === 'cod'
+                                                    ? 'border-brand-300 bg-brand-50'
+                                                    : 'border-brand-200 bg-white hover:bg-brand-50',
+                                            ].join(' ')}
+                                        >
+                                            <CreditCard className="h-5 w-5 text-brand-900" />
+                                            <div className="flex-1">
+                                                <div className="text-sm font-semibold">Cash on Delivery</div>
+                                                <div className="text-xs text-brand-700">Pay when you receive</div>
+                                            </div>
+                                            {method === 'cod' && <CheckCircle2 className="h-5 w-5 text-brand-900" />}
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {method === 'upi' ? (
+                                    <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+                                        <div className="text-sm font-semibold text-brand-900">Choose UPI app</div>
+                                        <div className="mt-1 text-xs text-brand-700">Pick a provider for a faster payment experience.</div>
+                                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setUpiProvider('gpay')}
+                                                className={[
+                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
+                                                    upiProvider === 'gpay'
+                                                        ? 'border-brand-300 bg-white'
+                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
+                                                ].join(' ')}
+                                            >
+                                                GOOGLE PAY
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setUpiProvider('phonepe')}
+                                                className={[
+                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
+                                                    upiProvider === 'phonepe'
+                                                        ? 'border-brand-300 bg-white'
+                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
+                                                ].join(' ')}
+                                            >
+                                                PHONEPE
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setUpiProvider('paytm')}
+                                                className={[
+                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
+                                                    upiProvider === 'paytm'
+                                                        ? 'border-brand-300 bg-white'
+                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
+                                                ].join(' ')}
+                                            >
+                                                PAYTM
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setUpiProvider('bhim')}
+                                                className={[
+                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
+                                                    upiProvider === 'bhim'
+                                                        ? 'border-brand-300 bg-white'
+                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
+                                                ].join(' ')}
+                                            >
+                                                BHIM
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setUpiProvider('other')}
+                                                className={[
+                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
+                                                    upiProvider === 'other'
+                                                        ? 'border-brand-300 bg-white'
+                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
+                                                ].join(' ')}
+                                            >
+                                                OTHER UPI
+                                            </button>
+                                        </div>
+                                        <div className="mt-3 rounded-2xl border border-brand-200 bg-white p-3 text-xs text-brand-700">
+                                            You’ll be redirected to your UPI app to approve the payment.
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+                                        <div className="text-sm font-semibold text-brand-900">Cash on Delivery</div>
+                                        <div className="mt-1 text-xs text-brand-700">
+                                            Pay in cash when your order arrives. Availability depends on location and order value.
+                                        </div>
+                                        <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-brand-200 bg-white p-3">
+                                            <input
+                                                type="checkbox"
+                                                checked={codConfirmed}
+                                                onChange={(e) => setCodConfirmed(e.target.checked)}
+                                                className="mt-1 h-4 w-4"
+                                            />
+                                            <div>
+                                                <div className="text-sm font-semibold text-brand-900">Confirm COD</div>
+                                                <div className="mt-1 text-xs text-brand-700">
+                                                    I understand I will pay {formatMoney(discountedTotal, currency)} on delivery.
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                )}
+
+                                {/* Coupon */}
+                                <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50 p-4">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-900">
+                                        <Gift className="h-4 w-4" />
+                                        Offers / Coupon
+                                    </div>
+                                    <div className="mt-3" ref={couponsBoxRef}>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                value={coupon}
+                                                onChange={(e) => setCoupon(e.target.value)}
+                                                placeholder="Enter code"
+                                                className="flex-1 rounded-xl border border-brand-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-200 uppercase"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    const next = !couponsOpen
+                                                    setCouponsOpen(next)
+                                                    if (next && availableCoupons.length === 0 && !couponsLoading) {
+                                                        await loadAvailableCoupons()
+                                                    }
+                                                }}
+                                                className="rounded-xl border border-brand-200 bg-white px-3 py-2 text-xs font-semibold tracking-[0.14em] text-brand-900 transition hover:bg-brand-100 shrink-0"
+                                            >
+                                                COUPONS
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleApplyCoupon}
+                                                className="rounded-xl bg-brand-900 px-3 py-2 text-xs font-semibold tracking-[0.14em] text-white transition hover:bg-black shrink-0"
+                                            >
+                                                APPLY
+                                            </button>
+                                        </div>
+
+                                        {couponsOpen ? (
+                                            <div className="mt-2 rounded-2xl border border-brand-200 bg-white shadow-soft">
+                                                <div className="max-h-[150px] overflow-auto p-2">
+                                                    {couponsLoading ? (
+                                                        <div className="p-2 text-xs text-brand-700">Loading…</div>
+                                                    ) : couponsLoadError ? (
+                                                        <div className="p-2 text-xs text-red-700">{couponsLoadError}</div>
+                                                    ) : availableCoupons.length === 0 ? (
+                                                        <div className="p-2 text-xs text-brand-700">No coupons available.</div>
+                                                    ) : (
+                                                        <div className="space-y-1">
+                                                            {availableCoupons.map((c) => (
+                                                                <button
+                                                                    key={c.code}
+                                                                    type="button"
+                                                                    onClick={async () => {
+                                                                        setCoupon(c.code)
+                                                                        setCouponsOpen(false)
+                                                                        await handleApplyCoupon()
+                                                                    }}
+                                                                    className="w-full rounded-xl border border-brand-100 bg-white px-3 py-2 text-left transition hover:bg-brand-50"
+                                                                >
+                                                                    <div className="text-xs font-semibold tracking-[0.14em] text-brand-900">
+                                                                        {c.code}
+                                                                    </div>
+                                                                    {c.description ? (
+                                                                        <div className="mt-1 text-xs text-brand-700">{c.description}</div>
+                                                                    ) : null}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    {appliedCoupon ? (
+                                        <div className="mt-2 text-xs text-green-700">
+                                            {couponMessage ? `${couponMessage} — ` : ''}You saved{' '}
+                                            {formatMoney(total - discountedTotal, currency)}
+                                        </div>
+                                    ) : couponError ? (
+                                        <div className="mt-2 text-xs text-red-700">{couponError}</div>
+                                    ) : (
+                                        <div className="mt-2 text-xs text-brand-700">Ask admin for a coupon code.</div>
+                                    )}
+                                </div>
+
+                                {/* Summary */}
+                                <div className="mt-6 space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                        <div className="text-brand-700">Subtotal</div>
+                                        <div>{formatMoney(total, currency)}</div>
+                                    </div>
+                                    {discountAmount > 0 && (
+                                        <div className="flex justify-between text-green-700">
+                                            <div>Discount ({appliedCoupon})</div>
+                                            <div>-{formatMoney(total - discountedTotal, currency)}</div>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between font-semibold">
+                                        <div>Total</div>
+                                        <div>{formatMoney(discountedTotal, currency)}</div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (!canProceed) return
+                                        setPlacing(true)
+                                        setPlaceError(null)
+
+                                        try {
+                                            const couponInfo = appliedCoupon
+                                                ? { code: appliedCoupon, discountAmount }
+                                                : null
+
+                                            if (method === 'cod') {
+                                                const payment = { method: 'cod', amount: discountedTotal, currency }
+
+                                                const { data } = await apiClient.post<{ orderId: string }>('/api/orders', {
+                                                    lines,
+                                                    delivery,
+                                                    payment,
+                                                    coupon: couponInfo,
+                                                })
+
+                                                onSuccess({ orderId: data.orderId })
+                                                return
+                                            }
+
+                                            const loaded = await loadRazorpay()
+                                            if (!loaded || !window.Razorpay) {
+                                                setPlaceError('Failed to load payment gateway')
+                                                return
+                                            }
+
+                                            const { data: init } = await apiClient.post<{
+                                                keyId: string
+                                                orderId: string
+                                                razorpayOrderId: string
+                                                amount: number
+                                                currency: string
+                                                name: string
+                                                description: string
+                                                prefill: { name: string; contact: string }
+                                            }>('/api/payments/razorpay/create-order', {
+                                                lines,
+                                                delivery,
+                                                coupon: couponInfo,
+                                            })
+
+                                            const options: Record<string, unknown> = {
+                                                key: init.keyId,
+                                                amount: init.amount,
+                                                currency: init.currency,
+                                                name: init.name,
+                                                description: init.description,
+                                                order_id: init.razorpayOrderId,
+                                                prefill: init.prefill,
+                                                notes: {
+                                                    internalOrderId: init.orderId,
+                                                },
+                                                handler: async (response: any) => {
+                                                    try {
+                                                        const { data: verified } = await apiClient.post<{ ok: boolean }>(
+                                                            '/api/payments/razorpay/verify',
+                                                            {
+                                                                orderId: init.orderId,
+                                                                razorpay_order_id: response.razorpay_order_id,
+                                                                razorpay_payment_id: response.razorpay_payment_id,
+                                                                razorpay_signature: response.razorpay_signature,
+                                                            },
+                                                        )
+
+                                                        if (!verified.ok) {
+                                                            setPlaceError('Payment verification failed')
+                                                            return
+                                                        }
+
+                                                        onSuccess({ orderId: init.orderId })
+                                                    } catch (_err) {
+                                                        setPlaceError('Payment verification failed')
+                                                    }
+                                                },
+                                                modal: {
+                                                    ondismiss: () => {
+                                                        setPlaceError('Payment was cancelled')
+                                                    },
+                                                },
+                                            }
+
+                                            const rz = new window.Razorpay(options)
+                                            rz.open()
+                                        } catch (_err) {
+                                            setPlaceError('Failed to place order')
+                                        } finally {
+                                            setPlacing(false)
+                                        }
+                                    }}
+                                    disabled={!canProceed}
+                                    className={[
+                                        'mt-6 w-full rounded-full px-6 py-3 text-xs font-semibold tracking-[0.18em] text-white shadow-soft transition',
+                                        canProceed
+                                            ? 'bg-brand-900 hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300'
+                                            : 'cursor-not-allowed bg-brand-400',
+                                    ].join(' ')}
+                                >
+                                    {placing
+                                        ? 'PLACING ORDER…'
+                                        : method === 'upi'
+                                            ? `PAY ${formatMoney(discountedTotal, currency)}`
+                                            : `CONFIRM COD ${formatMoney(discountedTotal, currency)}`}
+                                </button>
+
+                                {placeError ? (
+                                    <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                        {placeError}
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    )
+
+    if (!portalTarget) return null
+    return createPortal(modalTree, portalTarget)
+}
