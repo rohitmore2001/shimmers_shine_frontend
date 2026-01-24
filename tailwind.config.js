@@ -18,7 +18,7 @@ export default {
         },
       },
       fontFamily: {
-        display: ['"Playfair Display"', 'ui-serif', 'Georgia', 'serif'],
+        display: ['"Cinzel Decorative"', 'ui-serif', 'Georgia', 'serif'],
         body: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
       },
       boxShadow: {

@@ -8,6 +8,15 @@
     height: 100%;
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
   body {
     margin: 0;
     @apply font-body bg-brand-100 text-brand-900;
