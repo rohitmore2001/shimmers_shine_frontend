@@ -16,7 +16,7 @@ import {
   type Order 
 } from '../services/orderService'
 import { formatMoney } from '../utils/money'
-import { Filter, X } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import ReturnOrderModal from '../components/ReturnOrderModal'
 import ReplaceOrderModal from '../components/ReplaceOrderModal'
 import CancelOrderModal from '../components/CancelOrderModal'
