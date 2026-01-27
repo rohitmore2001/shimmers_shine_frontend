@@ -269,14 +269,14 @@ export default function MyOrdersPage() {
           <div className="flex items-center gap-2">
             {/* Filter Dropdown */}
             <div className="relative">
-              {/* <button
+              <button
                 type="button"
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                 className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-brand-900 transition hover:bg-white"
               >
                 <Filter className="h-3.5 w-3.5" />
                 {statusFilter === 'all' ? 'All Orders' : ORDER_STATUSES.find(s => s.value === statusFilter)?.label || 'Filter'}
-              </button> */}
+              </button>
               
               {showFilterDropdown && (
                 <div className="absolute right-0 z-10 mt-2 w-56 rounded-2xl border border-brand-200 bg-white shadow-soft">
