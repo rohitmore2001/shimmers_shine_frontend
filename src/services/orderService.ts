@@ -99,12 +99,36 @@ export function canCancelOrder(orderStatus: string): boolean {
   return ['created', 'confirmed'].includes(orderStatus)
 }
 
-export function canReturnOrder(orderStatus: string): boolean {
-  return orderStatus === 'delivered'
+export function canReturnOrder(orderStatus: string, deliveryStatus?: string, updatedAt?: string): boolean {
+  // Check if order is effectively delivered
+  const isDelivered = orderStatus === 'delivered' || deliveryStatus === 'delivered'
+  if (!isDelivered) return false
+  
+  // Check if return is within 3 days of delivery
+  if (updatedAt) {
+    const deliveryDate = new Date(updatedAt)
+    const now = new Date()
+    const daysSinceDelivery = Math.floor((now.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24))
+    return daysSinceDelivery <= 3
+  }
+  
+  return true // If no date provided, allow return
 }
 
-export function canReplaceOrder(orderStatus: string): boolean {
-  return orderStatus === 'delivered'
+export function canReplaceOrder(orderStatus: string, deliveryStatus?: string, updatedAt?: string): boolean {
+  // Check if order is effectively delivered
+  const isDelivered = orderStatus === 'delivered' || deliveryStatus === 'delivered'
+  if (!isDelivered) return false
+  
+  // Check if replacement is within 3 days of delivery
+  if (updatedAt) {
+    const deliveryDate = new Date(updatedAt)
+    const now = new Date()
+    const daysSinceDelivery = Math.floor((now.getTime() - deliveryDate.getTime()) / (1000 * 60 * 60 * 24))
+    return daysSinceDelivery <= 3
+  }
+  
+  return true // If no date provided, allow replacement
 }
 
 export function getOrderStatusColor(status: string): string {

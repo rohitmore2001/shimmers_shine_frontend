@@ -16,9 +16,46 @@ import {
   type Order 
 } from '../services/orderService'
 import { formatMoney } from '../utils/money'
+import { Filter, X } from 'lucide-react'
 import ReturnOrderModal from '../components/ReturnOrderModal'
 import ReplaceOrderModal from '../components/ReplaceOrderModal'
 import CancelOrderModal from '../components/CancelOrderModal'
+
+const ORDER_STATUSES = [
+  { value: 'all', label: '📋 All Orders' },
+  { value: 'created', label: '🛒 Order Placed' },
+  { value: 'confirmed', label: '✅ Order Confirmed' },
+  { value: 'shipped', label: '🚚 Out for Delivery' },
+  { value: 'delivered', label: '📦 Delivered Successfully' },
+  { value: 'cancelled', label: '❌ Order Cancelled' },
+  // Commented out for future use - return and replacement statuses
+  // { value: 'return_requested', label: '🔄 Return Requested' },
+  // { value: 'return_approved', label: '✅ Return Approved' },
+  // { value: 'return_rejected', label: '❌ Return Rejected' },
+  // { value: 'returned', label: '🔄 Item Returned' },
+  // { value: 'replacement_requested', label: '🔄 Replacement Requested' },
+  // { value: 'replacement_approved', label: '✅ Replacement Approved' },
+  // { value: 'replacement_rejected', label: '❌ Replacement Rejected' },
+  // { value: 'replaced', label: '🔄 Item Replaced' },
+  // Payment statuses - can be uncommented if needed in future
+  // { value: 'pending', label: '⏳ Payment Pending' },
+  // { value: 'paid', label: '💳 Payment Completed' },
+] as const
+
+function getEffectiveOrderStatus(order: Order): string {
+  // If order is cancelled, that takes precedence
+  if (order.orderStatus === 'cancelled') return 'cancelled'
+  
+  // If there's a delivery status, it might be more current than order status
+  if (order.deliveryStatus) {
+    // Handle cases where delivery status might be more advanced
+    if (order.deliveryStatus === 'delivered') return 'delivered'
+    if (order.deliveryStatus === 'shipped') return 'shipped'
+  }
+  
+  // Default to order status
+  return order.orderStatus
+}
 
 
 export default function MyOrdersPage() {
@@ -30,6 +67,7 @@ export default function MyOrdersPage() {
   const [password, setPassword] = useState('')
 
   const [items, setItems] = useState<Order[]>([])
+  const [filteredItems, setFilteredItems] = useState<Order[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -38,6 +76,8 @@ export default function MyOrdersPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
 
   const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
 
@@ -47,12 +87,30 @@ export default function MyOrdersPage() {
     try {
       const orders = await getMyOrders()
       setItems(orders)
+      applyFilter(orders, statusFilter)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load orders'
       setError(msg)
     } finally {
       setLoading(false)
     }
+  }
+
+  function applyFilter(orders: Order[], filter: string) {
+    if (filter === 'all') {
+      setFilteredItems(orders)
+    } else {
+      setFilteredItems(orders.filter(order => {
+        const effectiveStatus = getEffectiveOrderStatus(order)
+        return effectiveStatus === filter
+      }))
+    }
+  }
+
+  function handleStatusFilterChange(filter: string) {
+    setStatusFilter(filter)
+    applyFilter(items, filter)
+    setShowFilterDropdown(false)
   }
 
   useEffect(() => {
@@ -208,46 +266,84 @@ export default function MyOrdersPage() {
               {auth.user?.email ? `Signed in as ${auth.user.email}.` : 'Your recent orders.'}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => void load()}
-            className="inline-flex w-fit rounded-full border border-brand-200 bg-brand-50 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-brand-900 transition hover:bg-white"
-            disabled={loading}
-          >
-            REFRESH
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Filter Dropdown */}
+            <div className="relative">
+              {/* <button
+                type="button"
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-brand-900 transition hover:bg-white"
+              >
+                <Filter className="h-3.5 w-3.5" />
+                {statusFilter === 'all' ? 'All Orders' : ORDER_STATUSES.find(s => s.value === statusFilter)?.label || 'Filter'}
+              </button> */}
+              
+              {showFilterDropdown && (
+                <div className="absolute right-0 z-10 mt-2 w-56 rounded-2xl border border-brand-200 bg-white shadow-soft">
+                  <div className="max-h-64 overflow-y-auto">
+                    {ORDER_STATUSES.map((status) => (
+                      <button
+                        key={status.value}
+                        type="button"
+                        onClick={() => handleStatusFilterChange(status.value)}
+                        className={`w-full px-4 py-2 text-left text-xs transition hover:bg-brand-50 ${
+                          statusFilter === status.value ? 'bg-brand-100 font-semibold text-brand-900' : 'text-brand-700'
+                        }`}
+                      >
+                        {status.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="inline-flex w-fit rounded-full border border-brand-200 bg-brand-50 px-5 py-2 text-xs font-semibold tracking-[0.14em] text-brand-900 transition hover:bg-white"
+              disabled={loading}
+            >
+              REFRESH
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="rounded-2xl border border-brand-200 bg-white p-6 shadow-soft">
-        <div className="text-sm font-semibold">All orders</div>
-        {error ? <div className="mt-3 text-sm text-red-700">{error}</div> : null}
-        {loading ? (
-          <div className="mt-3 text-sm text-brand-700">Loading…</div>
-        ) : items.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-6 text-sm text-brand-700">
-            No orders yet. When you place an order at checkout, it will appear here.
-            <div className="mt-4">
-              <Link
-                to="/products"
-                className="inline-flex rounded-full bg-brand-900 px-6 py-3 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-black"
-              >
-                SHOP NOW
-              </Link>
-            </div>
+        <div className="text-sm font-semibold">
+          {statusFilter === 'all' ? 'All orders' : `Orders: ${ORDER_STATUSES.find(s => s.value === statusFilter)?.label || 'Filtered'}`}
+        </div>
+      {error ? <div className="mt-3 text-sm text-red-700">{error}</div> : null}
+      {loading ? (
+        <div className="mt-3 text-sm text-brand-700">Loading…</div>
+      ) : filteredItems.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-6 text-sm text-brand-700">
+          {statusFilter === 'all' 
+            ? 'No orders yet. When you place an order at checkout, it will appear here.'
+            : `No orders with status "${ORDER_STATUSES.find(s => s.value === statusFilter)?.label || statusFilter}".`
+          }
+          <div className="mt-4">
+            <Link
+              to="/products"
+              className="inline-flex rounded-full bg-brand-900 px-6 py-3 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-black"
+            >
+              SHOP NOW
+            </Link>
           </div>
-        ) : (
-          <div className="mt-4 space-y-4">
-            {items.map((o) => (
+        </div>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {filteredItems.map((o) => (
               <div key={o.orderId} className="rounded-2xl border border-brand-200 bg-white p-5 shadow-soft">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1">
                     <div className="font-mono text-xs text-brand-700">{o.orderId}</div>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getOrderStatusColor(o.orderStatus)}`}>
-                        {getOrderStatusLabel(o.orderStatus)}
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getOrderStatusColor(getEffectiveOrderStatus(o))}`}>
+                        {getOrderStatusLabel(getEffectiveOrderStatus(o))}
                       </span>
-                      {o.deliveryStatus && (
+                      {o.deliveryStatus && getEffectiveOrderStatus(o) !== o.deliveryStatus && (
                         <span className="inline-flex rounded-full px-2 py-1 text-xs font-semibold bg-blue-50 text-blue-700">
                           Delivery: {o.deliveryStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
@@ -286,25 +382,25 @@ export default function MyOrdersPage() {
                         </button>
                       )}
                       
-                      {canReturnOrder(o.orderStatus) && (
+                      {canReturnOrder(o.orderStatus, o.deliveryStatus, o.updatedAt) && (
                         <button
                           type="button"
                           onClick={() => handleReturnOrder(o.orderId)}
                           disabled={actionLoading === o.orderId}
                           className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 transition hover:bg-orange-100 disabled:opacity-50"
                         >
-                          {actionLoading === o.orderId ? 'SUBMITTING…' : 'RETURN'}
+                          {actionLoading === o.orderId ? 'REQUESTING…' : 'RETURN'}
                         </button>
                       )}
                       
-                      {canReplaceOrder(o.orderStatus) && (
+                      {canReplaceOrder(o.orderStatus, o.deliveryStatus, o.updatedAt) && (
                         <button
                           type="button"
                           onClick={() => handleReplaceOrder(o.orderId)}
                           disabled={actionLoading === o.orderId}
                           className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-50"
                         >
-                          {actionLoading === o.orderId ? 'SUBMITTING…' : 'REPLACE'}
+                          {actionLoading === o.orderId ? 'REQUESTING…' : 'REPLACE'}
                         </button>
                       )}
                     </div>

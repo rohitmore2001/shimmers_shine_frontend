@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { CheckCircle2, Gift, X, CreditCard, Smartphone } from 'lucide-react'
+import { CheckCircle2, Gift, X, CreditCard, Smartphone, RefreshCw } from 'lucide-react'
 import { formatMoney } from '../utils/money'
 import { apiClient } from '../services/apiClient'
 
@@ -12,7 +12,7 @@ declare global {
 }
 
 type PaymentMethod = 'upi' | 'cod'
-type UpiProvider = 'gpay' | 'phonepe' | 'paytm' | 'bhim' | 'other'
+type DeliveryMethod = 'standard' | 'fastest'
 
 type AvailableCoupon = {
     code: string
@@ -39,7 +39,6 @@ export default function PaymentModal({
 }) {
     const prefersReducedMotion = useReducedMotion()
     const [method, setMethod] = useState<PaymentMethod>('upi')
-    const [upiProvider, setUpiProvider] = useState<UpiProvider>('gpay')
     const [codConfirmed, setCodConfirmed] = useState(false)
     const [coupon, setCoupon] = useState('')
     const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
@@ -54,6 +53,7 @@ export default function PaymentModal({
     const [placing, setPlacing] = useState(false)
     const [placeError, setPlaceError] = useState<string | null>(null)
     const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+    const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('standard')
 
     useEffect(() => {
         if (!open) {
@@ -146,6 +146,8 @@ export default function PaymentModal({
     }
 
     const discountedTotal = Math.max(0, total - discountAmount)
+    const deliveryCharge = deliveryMethod === 'fastest' ? 80 : 0
+    const finalTotal = discountedTotal + deliveryCharge
 
     const canProceed = (method === 'upi' ? true : codConfirmed) && !placing
 
@@ -222,7 +224,7 @@ export default function PaymentModal({
                                 <div className="mt-4 rounded-2xl border border-brand-200 bg-white/70 p-4 backdrop-blur">
                                     <div className="flex items-center justify-between">
                                         <div className="text-xs font-semibold tracking-[0.16em] text-brand-700">PAYABLE</div>
-                                        <div className="text-lg font-semibold text-brand-900">{formatMoney(discountedTotal, currency)}</div>
+                                        <div className="text-lg font-semibold text-brand-900">{formatMoney(finalTotal, currency)}</div>
                                     </div>
                                     {discountAmount > 0 ? (
                                         <div className="mt-1 text-xs text-green-700">
@@ -230,6 +232,11 @@ export default function PaymentModal({
                                         </div>
                                     ) : (
                                         <div className="mt-1 text-xs text-brand-700">Use a coupon to unlock savings.</div>
+                                    )}
+                                    {deliveryCharge > 0 && (
+                                        <div className="mt-1 text-xs text-orange-700">
+                                            +{formatMoney(deliveryCharge, currency)} for fastest delivery
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -295,72 +302,15 @@ export default function PaymentModal({
 
                                 {method === 'upi' ? (
                                     <div className="mt-4 rounded-2xl border border-brand-200 bg-brand-50 p-4">
-                                        <div className="text-sm font-semibold text-brand-900">Choose UPI app</div>
-                                        <div className="mt-1 text-xs text-brand-700">Pick a provider for a faster payment experience.</div>
-                                        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => setUpiProvider('gpay')}
-                                                className={[
-                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
-                                                    upiProvider === 'gpay'
-                                                        ? 'border-brand-300 bg-white'
-                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
-                                                ].join(' ')}
-                                            >
-                                                GOOGLE PAY
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setUpiProvider('phonepe')}
-                                                className={[
-                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
-                                                    upiProvider === 'phonepe'
-                                                        ? 'border-brand-300 bg-white'
-                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
-                                                ].join(' ')}
-                                            >
-                                                PHONEPE
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setUpiProvider('paytm')}
-                                                className={[
-                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
-                                                    upiProvider === 'paytm'
-                                                        ? 'border-brand-300 bg-white'
-                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
-                                                ].join(' ')}
-                                            >
-                                                PAYTM
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setUpiProvider('bhim')}
-                                                className={[
-                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
-                                                    upiProvider === 'bhim'
-                                                        ? 'border-brand-300 bg-white'
-                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
-                                                ].join(' ')}
-                                            >
-                                                BHIM
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setUpiProvider('other')}
-                                                className={[
-                                                    'rounded-2xl border px-3 py-3 text-left text-xs font-semibold tracking-[0.14em] transition',
-                                                    upiProvider === 'other'
-                                                        ? 'border-brand-300 bg-white'
-                                                        : 'border-brand-200 bg-brand-50 hover:bg-white',
-                                                ].join(' ')}
-                                            >
-                                                OTHER UPI
-                                            </button>
+                                        <div className="text-sm font-semibold text-brand-900">UPI Payment</div>
+                                        <div className="mt-1 text-xs text-brand-700">
+                                            You'll be redirected to Razorpay's secure payment gateway. All UPI apps (GPay, PhonePe, Paytm, etc.) are supported.
                                         </div>
                                         <div className="mt-3 rounded-2xl border border-brand-200 bg-white p-3 text-xs text-brand-700">
-                                            You’ll be redirected to your UPI app to approve the payment.
+                                            <div className="flex items-center gap-2">
+                                                <Smartphone className="h-4 w-4 text-brand-900" />
+                                                <span>Fast and secure payment via any UPI app</span>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
@@ -379,18 +329,85 @@ export default function PaymentModal({
                                             <div>
                                                 <div className="text-sm font-semibold text-brand-900">Confirm COD</div>
                                                 <div className="mt-1 text-xs text-brand-700">
-                                                    I understand I will pay {formatMoney(discountedTotal, currency)} on delivery.
+                                                    I understand I will pay {formatMoney(finalTotal, currency)} on delivery.
                                                 </div>
                                             </div>
                                         </label>
                                     </div>
                                 )}
 
+                                {/* Delivery Options */}
+                                <div className="mt-6 space-y-3">
+                                    <div className="text-sm font-semibold text-brand-900">Delivery Options</div>
+                                    <label className="block cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="delivery"
+                                            value="standard"
+                                            checked={deliveryMethod === 'standard'}
+                                            onChange={() => setDeliveryMethod('standard')}
+                                            className="sr-only"
+                                        />
+                                        <div
+                                            className={[
+                                                'flex items-center gap-3 rounded-2xl border p-4 transition',
+                                                deliveryMethod === 'standard'
+                                                    ? 'border-brand-300 bg-brand-50'
+                                                    : 'border-brand-200 bg-white hover:bg-brand-50',
+                                            ].join(' ')}
+                                        >
+                                            <div className="flex-1">
+                                                <div className="text-sm font-semibold">Standard Delivery</div>
+                                                <div className="text-xs text-brand-700">within 4-7 days</div>
+                                            </div>
+                                            <div className="text-sm font-semibold text-green-700">Free</div>
+                                            {deliveryMethod === 'standard' && <CheckCircle2 className="h-5 w-5 text-brand-900" />}
+                                        </div>
+                                    </label>
+
+                                    <label className="block cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="delivery"
+                                            value="fastest"
+                                            checked={deliveryMethod === 'fastest'}
+                                            onChange={() => setDeliveryMethod('fastest')}
+                                            className="sr-only"
+                                        />
+                                        <div
+                                            className={[
+                                                'flex items-center gap-3 rounded-2xl border p-4 transition',
+                                                deliveryMethod === 'fastest'
+                                                    ? 'border-brand-300 bg-brand-50'
+                                                    : 'border-brand-200 bg-white hover:bg-brand-50',
+                                            ].join(' ')}
+                                        >
+                                            <div className="flex-1">
+                                                <div className="text-sm font-semibold">Fastest Delivery</div>
+                                                <div className="text-xs text-brand-700">within 2-3 days</div>
+                                            </div>
+                                            <div className="text-sm font-semibold text-orange-700">+{formatMoney(80, currency)}</div>
+                                            {deliveryMethod === 'fastest' && <CheckCircle2 className="h-5 w-5 text-brand-900" />}
+                                        </div>
+                                    </label>
+                                </div>
+
                                 {/* Coupon */}
                                 <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50 p-4">
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-brand-900">
-                                        <Gift className="h-4 w-4" />
-                                        Offers / Coupon
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-brand-900">
+                                            <Gift className="h-4 w-4" />
+                                            Offers / Coupon
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={loadAvailableCoupons}
+                                            disabled={couponsLoading}
+                                            className="rounded-full p-1.5 text-brand-600 transition hover:bg-brand-200 hover:text-brand-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title="Fetch latest coupons"
+                                        >
+                                            <RefreshCw className={`h-3.5 w-3.5 ${couponsLoading ? 'animate-spin' : ''}`} />
+                                        </button>
                                     </div>
                                     <div className="mt-3" ref={couponsBoxRef}>
                                         <div className="flex items-center gap-2">
@@ -412,7 +429,7 @@ export default function PaymentModal({
                                                 }}
                                                 className="rounded-xl border border-brand-200 bg-white px-3 py-2 text-xs font-semibold tracking-[0.14em] text-brand-900 transition hover:bg-brand-100 shrink-0"
                                             >
-                                                COUPONS
+                                                {couponsOpen ? 'HIDE' : 'COUPONS'}
                                             </button>
 
                                             <button
@@ -441,13 +458,22 @@ export default function PaymentModal({
                                                                     type="button"
                                                                     onClick={async () => {
                                                                         setCoupon(c.code)
-                                                                        setCouponsOpen(false)
                                                                         await handleApplyCoupon()
                                                                     }}
-                                                                    className="w-full rounded-xl border border-brand-100 bg-white px-3 py-2 text-left transition hover:bg-brand-50"
+                                                                    className={[
+                                                                        'w-full rounded-xl border px-3 py-2 text-left transition',
+                                                                        appliedCoupon === c.code
+                                                                            ? 'border-brand-300 bg-brand-100'
+                                                                            : 'border-brand-100 bg-white hover:bg-brand-50'
+                                                                    ].join(' ')}
                                                                 >
-                                                                    <div className="text-xs font-semibold tracking-[0.14em] text-brand-900">
-                                                                        {c.code}
+                                                                    <div className="flex items-center justify-between">
+                                                                        <div className="text-xs font-semibold tracking-[0.14em] text-brand-900">
+                                                                            {c.code}
+                                                                        </div>
+                                                                        {appliedCoupon === c.code && (
+                                                                            <CheckCircle2 className="h-3.5 w-3.5 text-brand-900" />
+                                                                        )}
                                                                     </div>
                                                                     {c.description ? (
                                                                         <div className="mt-1 text-xs text-brand-700">{c.description}</div>
@@ -462,9 +488,24 @@ export default function PaymentModal({
                                     </div>
 
                                     {appliedCoupon ? (
-                                        <div className="mt-2 text-xs text-green-700">
-                                            {couponMessage ? `${couponMessage} — ` : ''}You saved{' '}
-                                            {formatMoney(total - discountedTotal, currency)}
+                                        <div className="mt-2 flex items-center justify-between">
+                                            <div className="text-xs text-green-700">
+                                                {couponMessage ? `${couponMessage} — ` : ''}You saved{' '}
+                                                {formatMoney(total - discountedTotal, currency)}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setAppliedCoupon(null)
+                                                    setDiscountAmount(0)
+                                                    setCouponMessage(null)
+                                                    setCouponError(null)
+                                                    setCoupon('')
+                                                }}
+                                                className="ml-2 rounded-full border border-red-200 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                                            >
+                                                REMOVE
+                                            </button>
                                         </div>
                                     ) : couponError ? (
                                         <div className="mt-2 text-xs text-red-700">{couponError}</div>
@@ -485,9 +526,15 @@ export default function PaymentModal({
                                             <div>-{formatMoney(total - discountedTotal, currency)}</div>
                                         </div>
                                     )}
-                                    <div className="flex justify-between font-semibold">
+                                    {deliveryCharge > 0 && (
+                                        <div className="flex justify-between text-orange-700">
+                                            <div>Delivery ({deliveryMethod === 'fastest' ? 'Fastest' : 'Standard'})</div>
+                                            <div>+{formatMoney(deliveryCharge, currency)}</div>
+                                        </div>
+                                    )}
+                                    <div className="mt-2 flex justify-between font-semibold">
                                         <div>Total</div>
-                                        <div>{formatMoney(discountedTotal, currency)}</div>
+                                        <div>{formatMoney(finalTotal, currency)}</div>
                                     </div>
                                 </div>
 
@@ -504,7 +551,7 @@ export default function PaymentModal({
                                                 : null
 
                                             if (method === 'cod') {
-                                                const payment = { method: 'cod', amount: discountedTotal, currency }
+                                                const payment = { method: 'cod', amount: finalTotal, currency }
 
                                                 const { data } = await apiClient.post<{ orderId: string }>('/api/orders', {
                                                     lines,
@@ -597,8 +644,8 @@ export default function PaymentModal({
                                     {placing
                                         ? 'PLACING ORDER…'
                                         : method === 'upi'
-                                            ? `PAY ${formatMoney(discountedTotal, currency)}`
-                                            : `CONFIRM COD ${formatMoney(discountedTotal, currency)}`}
+                                            ? `PAY ${formatMoney(finalTotal, currency)}`
+                                            : `CONFIRM COD ${formatMoney(finalTotal, currency)}`}
                                 </button>
 
                                 {placeError ? (
@@ -633,7 +680,7 @@ export default function PaymentModal({
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <div className="flex items-center justify-between mb-4">
-                                            <div className="font-display text-xl tracking-wide">Cancel Order?</div>
+                                            <div className="font-display text-xl tracking-wide">Lose Your Discount?</div>
                                             <button
                                                 type="button"
                                                 onClick={() => setShowCancelConfirm(false)}
@@ -645,45 +692,24 @@ export default function PaymentModal({
                                         </div>
 
                                         <div className="text-sm text-brand-700 mb-4">
-                                            Are you sure you want to cancel? Before you go, please review our return policy:
+                                            Are you sure you want to cancel? You'll lose any applied discounts and offers!
                                         </div>
 
-                                        <div className="max-h-[40vh] overflow-y-auto space-y-4 text-sm">
-                                            <div>
-                                                <h4 className="font-semibold text-brand-900">Returns & Exchanges</h4>
-                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
-                                                    <li>• Within 3 days of delivery</li>
-                                                    <li>• Product must be unused with original packaging</li>
-                                                </ul>
-                                            </div>
-
-                                            <div>
-                                                <h4 className="font-semibold text-brand-900">Non-Returnable</h4>
-                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
-                                                    <li>• Customized/engraved items</li>
-                                                    <li>• Sale/discounted items</li>
-                                                    <li>• Chemical damage</li>
-                                                </ul>
-                                            </div>
-
-                                            <div>
-                                                <h4 className="font-semibold text-brand-900">Damaged Items</h4>
-                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
-                                                    <li>• Contact within 48 hours</li>
-                                                    <li>• Share photos/videos + unboxing video</li>
-                                                    <li>• Replacement offered after verification</li>
-                                                </ul>
-                                            </div>
-
-                                            <div>
-                                                <h4 className="font-semibold text-brand-900">Refunds & Exchange</h4>
-                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
-                                                    <li>• No cash refunds</li>
-                                                    <li>• Shipping non-refundable</li>
-                                                    <li>• Exchange allowed once per order</li>
-                                                    <li>• Customer pays return shipping</li>
-                                                </ul>
-                                            </div>
+                                        <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4 mb-4">
+                                            <div className="text-sm font-semibold text-orange-900 mb-2">Don't miss out on savings!</div>
+                                            {appliedCoupon ? (
+                                                <div className="space-y-1 text-xs text-orange-800">
+                                                    <div>• Applied coupon: {appliedCoupon}</div>
+                                                    <div>• You're saving: {formatMoney(total - discountedTotal, currency)}</div>
+                                                    <div>• This offer may not be available later</div>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1 text-xs text-orange-800">
+                                                    <div>• Complete your order to keep current pricing</div>
+                                                    <div>• Special offers may expire</div>
+                                                    <div>• Cart items may go out of stock</div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="mt-6 flex gap-3">
