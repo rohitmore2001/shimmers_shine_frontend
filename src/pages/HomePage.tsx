@@ -282,6 +282,71 @@ export default function HomePage() {
           ))}
         </div>
       </motion.section> */}
+
+      <motion.section
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.25 }}
+        className="rounded-3xl bg-white p-8 shadow-soft"
+      >
+        <div className="font-display text-2xl tracking-wide">Return & Exchange Policy (India)</div>
+        <div className="mt-4 text-sm text-brand-700">
+          We take great care in crafting and packing every piece. However, if you face any issues, please read our policy below:
+        </div>
+
+        <div className="mt-6 space-y-6">
+          <div>
+            <h3 className="font-semibold text-brand-900">Returns & Exchanges</h3>
+            <ul className="mt-2 space-y-1 text-sm text-brand-800">
+              <li>• We accept returns or exchanges within 3 days of delivery.</li>
+              <li>• The product must be unused, unworn, and in original condition with packaging.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-brand-900">Non-Returnable Items</h3>
+            <div className="mt-2 text-sm text-brand-700">For hygiene and safety reasons, we do not accept returns or exchanges on:</div>
+            <ul className="mt-1 space-y-1 text-sm text-brand-800">
+              <li>• Customized / engraved jewellery</li>
+              <li>• Sale or discounted items</li>
+              <li>• Products damaged due to perfume, sweat, or chemicals</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-brand-900">Damaged or Wrong Product Received</h3>
+            <ul className="mt-2 space-y-1 text-sm text-brand-800">
+              <li>• Contact us within 48 hours of delivery</li>
+              <li>• Share clear photos/videos + unboxing video</li>
+              <li>• After verification, we will offer a replacement</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-brand-900">Refunds</h3>
+            <ul className="mt-2 space-y-1 text-sm text-brand-800">
+              <li>• We do not offer cash refund</li>
+              <li>• Shipping charges are non-refundable</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-brand-900">Exchange Policy</h3>
+            <ul className="mt-2 space-y-1 text-sm text-brand-800">
+              <li>• Exchange is allowed once per order</li>
+              <li>• Customer bears return shipping cost</li>
+              <li>• Replacement shipping will be covered by us (for approved cases)</li>
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-brand-200 bg-brand-50 p-4">
+            <p className="text-sm text-brand-800">
+              By placing an order, you agree to our Return & Exchange Policy.
+            </p>
+          </div>
+        </div>
+      </motion.section>
     </div>
   )
 }

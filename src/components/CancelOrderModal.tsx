@@ -55,6 +55,51 @@ export default function CancelOrderModal({
           </div>
         </div>
 
+        <div className="mt-4 max-h-[150px] overflow-y-auto rounded-xl border border-brand-200 bg-brand-50 p-4">
+          <div className="text-sm font-semibold text-brand-900 mb-3">Return & Exchange Policy</div>
+          <div className="space-y-3 text-xs">
+            <div>
+              <div className="font-semibold text-brand-800">Returns & Exchanges</div>
+              <ul className="mt-1 space-y-0.5 text-brand-700">
+                <li>• Within 3 days of delivery</li>
+                <li>• Product must be unused with original packaging</li>
+              </ul>
+            </div>
+            
+            <div>
+              <div className="font-semibold text-brand-800">Non-Returnable Items</div>
+              <ul className="mt-1 space-y-0.5 text-brand-700">
+                <li>• Customized/engraved jewellery</li>
+                <li>• Sale or discounted items</li>
+                <li>• Products damaged by chemicals</li>
+              </ul>
+            </div>
+            
+            <div>
+              <div className="font-semibold text-brand-800">Damaged Items</div>
+              <ul className="mt-1 space-y-0.5 text-brand-700">
+                <li>• Contact within 48 hours with photos/videos</li>
+                <li>• Replacement offered after verification</li>
+              </ul>
+            </div>
+            
+            <div>
+              <div className="font-semibold text-brand-800">Refunds & Exchange</div>
+              <ul className="mt-1 space-y-0.5 text-brand-700">
+                <li>• No cash refunds, shipping non-refundable</li>
+                <li>• Exchange allowed once per order</li>
+                <li>• Customer pays return shipping</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="mt-3 pt-3 border-t border-brand-200">
+            <div className="text-xs text-brand-600">
+              By continuing, you agree to our Return & Exchange Policy.
+            </div>
+          </div>
+        </div>
+
         <div className="mt-6 flex gap-3">
           <button
             type="button"

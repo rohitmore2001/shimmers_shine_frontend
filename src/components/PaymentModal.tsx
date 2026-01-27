@@ -53,15 +53,25 @@ export default function PaymentModal({
     const couponsBoxRef = useRef<HTMLDivElement | null>(null)
     const [placing, setPlacing] = useState(false)
     const [placeError, setPlaceError] = useState<string | null>(null)
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
     useEffect(() => {
-        if (!open) return
+        if (!open) {
+            setShowCancelConfirm(false)
+            return
+        }
 
         const prevOverflow = document.body.style.overflow
         document.body.style.overflow = 'hidden'
 
         function onKeyDown(e: KeyboardEvent) {
-            if (e.key === 'Escape') onClose()
+            if (e.key === 'Escape') {
+                if (showCancelConfirm) {
+                    setShowCancelConfirm(false)
+                } else {
+                    setShowCancelConfirm(true)
+                }
+            }
         }
 
         window.addEventListener('keydown', onKeyDown)
@@ -69,7 +79,7 @@ export default function PaymentModal({
             window.removeEventListener('keydown', onKeyDown)
             document.body.style.overflow = prevOverflow
         }
-    }, [open, onClose])
+    }, [open, onClose, showCancelConfirm])
 
     useEffect(() => {
         if (!couponsOpen) return
@@ -169,7 +179,7 @@ export default function PaymentModal({
                         animate={prefersReducedMotion ? undefined : { opacity: 1 }}
                         exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                         className="fixed inset-0 z-40 bg-black/60"
-                        onClick={onClose}
+                        onClick={() => setShowCancelConfirm(true)}
                     />
                     <motion.div
                         initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
@@ -192,7 +202,7 @@ export default function PaymentModal({
                             <div className="relative border-b border-brand-100 bg-gradient-to-br from-brand-50 via-white to-white p-6">
                                 <button
                                     type="button"
-                                    onClick={onClose}
+                                    onClick={() => setShowCancelConfirm(true)}
                                     className="absolute right-4 top-4 rounded-full p-2 text-brand-700 transition hover:bg-brand-100"
                                     aria-label="Close"
                                 >
@@ -599,6 +609,104 @@ export default function PaymentModal({
                             </div>
                         </div>
                     </motion.div>
+
+                    {/* Cancel Confirmation Modal */}
+                    <AnimatePresence>
+                        {showCancelConfirm && (
+                            <>
+                                <motion.div
+                                    initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+                                    animate={prefersReducedMotion ? undefined : { opacity: 1 }}
+                                    exit={prefersReducedMotion ? undefined : { opacity: 0 }}
+                                    className="fixed inset-0 z-[60] bg-black/80"
+                                    onClick={() => setShowCancelConfirm(false)}
+                                />
+                                <motion.div
+                                    initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+                                    animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1, y: 0 }}
+                                    exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96, y: 20 }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                    className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+                                >
+                                    <div 
+                                        className="w-full max-h-[80vh] max-w-md overflow-auto rounded-3xl border border-brand-200 bg-white shadow-2xl p-6"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="font-display text-xl tracking-wide">Cancel Order?</div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCancelConfirm(false)}
+                                                className="rounded-full p-2 text-brand-700 transition hover:bg-brand-100"
+                                                aria-label="Close"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="text-sm text-brand-700 mb-4">
+                                            Are you sure you want to cancel? Before you go, please review our return policy:
+                                        </div>
+
+                                        <div className="max-h-[40vh] overflow-y-auto space-y-4 text-sm">
+                                            <div>
+                                                <h4 className="font-semibold text-brand-900">Returns & Exchanges</h4>
+                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
+                                                    <li>• Within 3 days of delivery</li>
+                                                    <li>• Product must be unused with original packaging</li>
+                                                </ul>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="font-semibold text-brand-900">Non-Returnable</h4>
+                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
+                                                    <li>• Customized/engraved items</li>
+                                                    <li>• Sale/discounted items</li>
+                                                    <li>• Chemical damage</li>
+                                                </ul>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="font-semibold text-brand-900">Damaged Items</h4>
+                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
+                                                    <li>• Contact within 48 hours</li>
+                                                    <li>• Share photos/videos + unboxing video</li>
+                                                    <li>• Replacement offered after verification</li>
+                                                </ul>
+                                            </div>
+
+                                            <div>
+                                                <h4 className="font-semibold text-brand-900">Refunds & Exchange</h4>
+                                                <ul className="mt-1 space-y-1 text-xs text-brand-800">
+                                                    <li>• No cash refunds</li>
+                                                    <li>• Shipping non-refundable</li>
+                                                    <li>• Exchange allowed once per order</li>
+                                                    <li>• Customer pays return shipping</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-6 flex gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCancelConfirm(false)}
+                                                className="flex-1 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-brand-900 transition hover:bg-brand-100"
+                                            >
+                                                CONTINUE PAYMENT
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={onClose}
+                                                className="flex-1 rounded-full bg-brand-900 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-white transition hover:bg-black"
+                                            >
+                                                CANCEL ORDER
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
                 </>
             )}
         </AnimatePresence>
