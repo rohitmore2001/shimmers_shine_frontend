@@ -167,6 +167,7 @@ publicPaymentsRouter.post('/razorpay/create-order', requireCustomer, async (req,
       payment: { method: 'upi', gateway: 'razorpay' },
       orderStatus: 'created',
       paymentStatus: 'pending',
+      deliveryStatus: 'pending',
     })
 
     const client = getRazorpayClient()

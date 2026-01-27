@@ -46,7 +46,8 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('')
   const [pincode, setPincode] = useState('')
 
-  const deliveryValid = Boolean(fullName && phone && addressLine && city && pincode)
+  const deliveryValid =
+    Boolean(fullName.trim() && phone.trim() && addressLine.trim() && city.trim()) && pincode.trim().length === 6
 
   useEffect(() => {
     if (auth.status === 'authenticated' && step === 'login') {
@@ -276,7 +277,13 @@ export default function CheckoutPage() {
                     <div className="text-xs font-semibold tracking-wide text-brand-800">Pincode</div>
                     <input
                       value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
+                      onChange={(e) => {
+                        const next = e.target.value.replace(/\D/g, '').slice(0, 6)
+                        setPincode(next)
+                      }}
+                      inputMode="numeric"
+                      pattern="\d{6}"
+                      required
                       className="mt-1 w-full rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
                     />
                   </label>
@@ -392,7 +399,13 @@ export default function CheckoutPage() {
         total={subtotal}
         currency={currency}
         lines={lines}
-        delivery={{ fullName, phone, addressLine, city, pincode }}
+        delivery={{
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          addressLine: addressLine.trim(),
+          city: city.trim(),
+          pincode: pincode.trim(),
+        }}
       />
     </div>
   )

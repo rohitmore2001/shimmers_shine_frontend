@@ -189,18 +189,18 @@ export default function Layout() {
             <div className="mt-2 text-sm text-brand-700">support@jwellery.local</div>
             <div className="text-sm text-brand-700">+91 90000 00000</div>
           </div>
-          <div>
+          {/* <div>
             <div className="text-sm font-semibold text-brand-900">Visit</div>
             <div className="mt-2 text-sm text-brand-700">Mon-Sat 10:00 - 20:00</div>
             <div className="text-sm text-brand-700">City Center, India</div>
-          </div>
-          <div>
+          </div> */}
+          {/* <div>
             <div className="text-sm font-semibold text-brand-900">Note</div>
             <div className="mt-2 text-sm text-brand-700">
               SHIMMERS &amp; SHINE is a demo storefront using dummy JSON data. Plug your API
               in the service layer when ready.
             </div>
-          </div>
+          </div> */}
         </div>
       </footer>
     </div>

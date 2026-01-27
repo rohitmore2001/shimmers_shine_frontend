@@ -211,7 +211,8 @@ export default function HomePage() {
           <div className="max-w-md space-y-4">
             <div className="font-display text-3xl tracking-wide">OUR NEW COLLECTION</div>
             <div className="text-sm text-brand-900/80">
-              Minimal by design. Maximum by impact.
+              Crafted to turn heads. Designed to be cherished.
+              Timeless pieces that tell your story.
             </div>
             <Link
               to="/products"
@@ -232,7 +233,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      <motion.section
+      {/* <motion.section
         variants={fadeUp}
         initial="hidden"
         whileInView="show"
@@ -280,7 +281,7 @@ export default function HomePage() {
             </motion.div>
           ))}
         </div>
-      </motion.section>
+      </motion.section> */}
     </div>
   )
 }

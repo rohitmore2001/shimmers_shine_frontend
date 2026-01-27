@@ -15,7 +15,7 @@ export function clearAdminToken() {
 }
 
 export const adminApiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '',
+  baseURL: '', // Use relative URL so Vite proxy can handle it
   headers: {
     'Content-Type': 'application/json',
   },

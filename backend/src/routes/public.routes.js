@@ -8,6 +8,7 @@ import { Order } from '../models/Order.js'
 import { Customer } from '../models/Customer.js'
 import { requireCustomer } from '../middleware/requireCustomer.js'
 import { createOrderId } from '../utils/ids.js'
+import { geocodeIndianAddress, calculateDistanceFromNaviMumbai } from '../utils/distance.js'
 
 export const publicRouter = Router()
 
@@ -252,6 +253,15 @@ publicRouter.post('/orders', requireCustomer, async (req, res) => {
     )
   }
 
+  // Calculate distance from Navi Mumbai
+  const coords = geocodeIndianAddress(safeDelivery.addressLine, safeDelivery.city, safeDelivery.pincode)
+  const distanceFromNaviMumbai = calculateDistanceFromNaviMumbai(coords.latitude, coords.longitude)
+  
+  const distanceInfo = {
+    kilometers: Math.round(distanceFromNaviMumbai * 100) / 100, // Round to 2 decimal places
+    fromNaviMumbai: distanceFromNaviMumbai <= 50 // Consider within 50km as "from Navi Mumbai"
+  }
+
   const created = await Order.create({
     orderId,
     customerId,
@@ -271,12 +281,14 @@ publicRouter.post('/orders', requireCustomer, async (req, res) => {
     payment: payment || null,
     orderStatus: 'created',
     paymentStatus,
+    distance: distanceInfo,
   })
 
   return res.status(201).json({
     orderId: created.orderId,
     orderStatus: created.orderStatus,
     paymentStatus: created.paymentStatus,
+    deliveryStatus: created.deliveryStatus,
     subtotal: created.subtotal,
     discountAmount: created.discountAmount,
     total: created.total,
@@ -284,6 +296,7 @@ publicRouter.post('/orders', requireCustomer, async (req, res) => {
     currency: created.currency,
     delivery: created.delivery || null,
     payment: created.payment || null,
+    distance: created.distance || null,
     createdAt: created.createdAt,
   })
 })
@@ -301,6 +314,7 @@ publicRouter.get('/orders/me', requireCustomer, async (req, res) => {
       orderId: o.orderId,
       orderStatus: o.orderStatus || 'created',
       paymentStatus: o.paymentStatus || 'pending',
+      deliveryStatus: o.deliveryStatus || 'pending',
       subtotal: o.subtotal,
       discountAmount: o.discountAmount ?? 0,
       total: o.total ?? o.subtotal,
@@ -309,10 +323,134 @@ publicRouter.get('/orders/me', requireCustomer, async (req, res) => {
       lines: o.lines || [],
       delivery: o.delivery || null,
       payment: o.payment || null,
+      distance: o.distance || null,
+      returnRequest: o.returnRequest || null,
+      replacementRequest: o.replacementRequest || null,
       createdAt: o.createdAt,
       updatedAt: o.updatedAt,
     })),
   )
+})
+
+publicRouter.post('/orders/:orderId/cancel', requireCustomer, async (req, res) => {
+  const orderId = String(req.params.orderId)
+  const customerId = req.customer?.id
+  const { reason } = req.body || {}
+
+  if (!customerId) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  const order = await Order.findOne({ orderId, customerId })
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' })
+  }
+
+  if (!['created', 'confirmed'].includes(order.orderStatus)) {
+    return res.status(400).json({ message: 'Order cannot be cancelled at this stage' })
+  }
+
+  const updated = await Order.findOneAndUpdate(
+    { orderId, customerId },
+    { 
+      orderStatus: 'cancelled',
+      paymentStatus: order.paymentStatus === 'paid' ? 'refunded' : order.paymentStatus
+    },
+    { new: true }
+  ).lean()
+
+  return res.json({
+    orderId: updated.orderId,
+    orderStatus: updated.orderStatus,
+    paymentStatus: updated.paymentStatus,
+    message: 'Order cancelled successfully'
+  })
+})
+
+publicRouter.post('/orders/:orderId/return', requireCustomer, async (req, res) => {
+  const orderId = String(req.params.orderId)
+  const customerId = req.customer?.id
+  const { reason, description } = req.body || {}
+
+  if (!customerId) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  if (!reason || typeof reason !== 'string') {
+    return res.status(400).json({ message: 'Return reason is required' })
+  }
+
+  const order = await Order.findOne({ orderId, customerId })
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' })
+  }
+
+  if (order.orderStatus !== 'delivered') {
+    return res.status(400).json({ message: 'Only delivered orders can be returned' })
+  }
+
+  const updated = await Order.findOneAndUpdate(
+    { orderId, customerId },
+    { 
+      orderStatus: 'return_requested',
+      returnRequest: {
+        reason: reason.trim(),
+        description: description ? description.trim() : '',
+        requestedAt: new Date()
+      }
+    },
+    { new: true }
+  ).lean()
+
+  return res.json({
+    orderId: updated.orderId,
+    orderStatus: updated.orderStatus,
+    returnRequest: updated.returnRequest,
+    message: 'Return request submitted successfully'
+  })
+})
+
+publicRouter.post('/orders/:orderId/replace', requireCustomer, async (req, res) => {
+  const orderId = String(req.params.orderId)
+  const customerId = req.customer?.id
+  const { reason, description } = req.body || {}
+
+  if (!customerId) {
+    return res.status(401).json({ message: 'Unauthorized' })
+  }
+
+  if (!reason || typeof reason !== 'string') {
+    return res.status(400).json({ message: 'Replacement reason is required' })
+  }
+
+  const order = await Order.findOne({ orderId, customerId })
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' })
+  }
+
+  if (order.orderStatus !== 'delivered') {
+    return res.status(400).json({ message: 'Only delivered orders can be replaced' })
+  }
+
+  const updated = await Order.findOneAndUpdate(
+    { orderId, customerId },
+    { 
+      orderStatus: 'replacement_requested',
+      replacementRequest: {
+        reason: reason.trim(),
+        description: description ? description.trim() : '',
+        requestedAt: new Date()
+      }
+    },
+    { new: true }
+  ).lean()
+
+  return res.json({
+    orderId: updated.orderId,
+    orderStatus: updated.orderStatus,
+    replacementRequest: updated.replacementRequest,
+    message: 'Replacement request submitted successfully'
+  })
 })
 
 publicRouter.post('/coupons/validate', async (req, res) => {

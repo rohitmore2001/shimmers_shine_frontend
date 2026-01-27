@@ -14,7 +14,21 @@ export function createApp() {
   const app = express()
 
   const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173'
-  const origin = corsOrigin === '*' ? true : corsOrigin
+  const origin = (() => {
+    if (corsOrigin === '*') return true
+
+    const allowed = corsOrigin
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+
+    if (allowed.length <= 1) return allowed[0] || corsOrigin
+
+    return (requestOrigin, callback) => {
+      if (!requestOrigin) return callback(null, true)
+      return callback(null, allowed.includes(requestOrigin))
+    }
+  })()
 
   app.use(
     cors({

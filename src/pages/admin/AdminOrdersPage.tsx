@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { adminApiClient } from '../../services/adminApiClient'
 
-type OrderStatus = 'created' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled'
+type OrderStatus = 'created' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'return_requested' | 'return_approved' | 'return_rejected' | 'returned' | 'replacement_requested' | 'replacement_approved' | 'replacement_rejected' | 'replaced'
 type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+type DeliveryStatus = 'pending' | 'processing' | 'packed' | 'shipped' | 'out_for_delivery' | 'delivered' | 'failed'
 
 type OrderCustomer = {
   id: string | null
@@ -24,12 +25,29 @@ type AdminOrder = {
   customer: OrderCustomer | null
   orderStatus: OrderStatus
   paymentStatus: PaymentStatus
+  deliveryStatus: DeliveryStatus
   subtotal: number
   discountAmount: number
   total: number
   couponCode: string | null
   currency: string
   delivery?: Delivery
+  returnRequest?: {
+    reason: string
+    description?: string
+    requestedAt: string
+    approvedAt?: string
+    rejectedAt?: string
+    rejectionReason?: string
+  }
+  replacementRequest?: {
+    reason: string
+    description?: string
+    requestedAt: string
+    approvedAt?: string
+    rejectedAt?: string
+    rejectionReason?: string
+  }
   createdAt: string
 }
 
@@ -56,8 +74,18 @@ export default function AdminOrdersPage() {
     void load()
   }, [])
 
-  async function update(orderId: string, patch: Partial<Pick<AdminOrder, 'orderStatus' | 'paymentStatus'>>) {
+  async function update(orderId: string, patch: Partial<Pick<AdminOrder, 'orderStatus' | 'paymentStatus' | 'deliveryStatus'>>) {
     await adminApiClient.put(`/api/admin/orders/${orderId}`, patch)
+    await load()
+  }
+
+  async function handleReturnAction(orderId: string, action: 'approve' | 'reject', rejectionReason?: string) {
+    await adminApiClient.put(`/api/admin/orders/${orderId}/return`, { action, rejectionReason })
+    await load()
+  }
+
+  async function handleReplacementAction(orderId: string, action: 'approve' | 'reject', rejectionReason?: string) {
+    await adminApiClient.put(`/api/admin/orders/${orderId}/replace`, { action, rejectionReason })
     await load()
   }
 
@@ -87,7 +115,9 @@ export default function AdminOrdersPage() {
                   <th className="py-2">Amount</th>
                   <th className="py-2">Coupon</th>
                   <th className="py-2">Order Status</th>
+                  <th className="py-2">Delivery Status</th>
                   <th className="py-2">Payment Status</th>
+                  <th className="py-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,9 +159,22 @@ export default function AdminOrdersPage() {
                         onChange={(e) => void update(o.orderId, { orderStatus: e.target.value as OrderStatus })}
                         className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
                       >
-                        {['created', 'confirmed', 'shipped', 'delivered', 'cancelled'].map((s) => (
+                        {['created', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return_requested', 'return_approved', 'return_rejected', 'returned', 'replacement_requested', 'replacement_approved', 'replacement_rejected', 'replaced'].map((s) => (
                           <option key={s} value={s}>
-                            {s}
+                            {s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-2">
+                      <select
+                        value={o.deliveryStatus}
+                        onChange={(e) => void update(o.orderId, { deliveryStatus: e.target.value as DeliveryStatus })}
+                        className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
+                      >
+                        {['pending', 'processing', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'failed'].map((s) => (
+                          <option key={s} value={s}>
+                            {s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </option>
                         ))}
                       </select>
@@ -148,6 +191,50 @@ export default function AdminOrdersPage() {
                           </option>
                         ))}
                       </select>
+                    </td>
+                    <td className="py-2">
+                      <div className="flex gap-1">
+                        {o.orderStatus === 'return_requested' && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleReturnAction(o.orderId, 'approve')}
+                              className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-200"
+                            >
+                              Approve Return
+                            </button>
+                            <button
+                              onClick={() => handleReturnAction(o.orderId, 'reject')}
+                              className="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-200"
+                            >
+                              Reject Return
+                            </button>
+                          </div>
+                        )}
+                        {o.orderStatus === 'replacement_requested' && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleReplacementAction(o.orderId, 'approve')}
+                              className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-200"
+                            >
+                              Approve Replace
+                            </button>
+                            <button
+                              onClick={() => handleReplacementAction(o.orderId, 'reject')}
+                              className="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-200"
+                            >
+                              Reject Replace
+                            </button>
+                          </div>
+                        )}
+                        {['created', 'confirmed'].includes(o.orderStatus) && (
+                          <button
+                            onClick={() => update(o.orderId, { orderStatus: 'cancelled' })}
+                            className="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-200"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
