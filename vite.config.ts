@@ -5,7 +5,7 @@ import { loadEnv } from 'vite'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || "/api"
+  const apiProxyTarget = env.VITE_API_BASE_URL || 'http://localhost:4000'
 
   return {
     plugins: [react()],

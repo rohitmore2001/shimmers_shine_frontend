@@ -7,7 +7,7 @@ export function getAuthToken() {
 }
 
 export const apiClient = axios.create({
-  baseURL: '', // Use relative URL so Vite proxy can handle it
+  baseURL: import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL || '' : '',
   headers: {
     'Content-Type': 'application/json',
   },

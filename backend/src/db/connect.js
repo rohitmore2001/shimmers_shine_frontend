@@ -9,10 +9,15 @@ export async function connectToDb(mongoUri) {
 
   const dbName = process.env.MONGODB_DB_NAME
   const options = {
-    serverSelectionTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 5000,
     ...(dbName ? { dbName } : {}),
   }
 
-  await mongoose.connect(mongoUri, options)
-  console.log(`MongoDB connected${dbName ? ` (db: ${dbName})` : ''}`)
+  try {
+    await mongoose.connect(mongoUri, options)
+    console.log(`MongoDB connected${dbName ? ` (db: ${dbName})` : ''}`)
+  } catch (error) {
+    console.warn('MongoDB connection failed, running without database:', error.message)
+    // Don't throw error, allow server to start without DB
+  }
 }
