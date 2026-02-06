@@ -6,5 +6,13 @@ export async function connectToDb(mongoUri) {
   }
 
   mongoose.set('strictQuery', true)
-  await mongoose.connect(mongoUri)
+
+  const dbName = process.env.MONGODB_DB_NAME
+  const options = {
+    serverSelectionTimeoutMS: 10000,
+    ...(dbName ? { dbName } : {}),
+  }
+
+  await mongoose.connect(mongoUri, options)
+  console.log(`MongoDB connected${dbName ? ` (db: ${dbName})` : ''}`)
 }
