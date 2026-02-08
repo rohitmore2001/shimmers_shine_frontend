@@ -104,9 +104,12 @@ export default function ProductDetailModal({
             {/* Cart Badge */}
             {isInCart && (
               <div className="absolute left-4 top-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/90 px-3 py-2 text-xs font-semibold text-gray-900 shadow-lg backdrop-blur">
+                <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/90 px-3 py-2 text-xs font-semibold text-brand-900 shadow-lg backdrop-blur">
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
                   IN CART
-                  <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold">
+                  <span className="rounded-full bg-brand-200 px-2 py-0.5 text-xs font-semibold">
                     x{quantity}
                   </span>
                 </div>
@@ -205,10 +208,38 @@ export default function ProductDetailModal({
             <div className="mt-8 pt-6">
               <button
                 onClick={() => onAddToCart(product.id)}
-                className="w-full rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-[0.98]"
+                className={`w-full rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-soft transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] ${
+                  isInCart 
+                    ? 'bg-brand-800 hover:bg-brand-900' 
+                    : 'bg-brand-900 hover:bg-black'
+                }`}
               >
-                {isInCart ? 'Add one more' : 'Add to cart'}
+                <div className="flex items-center justify-center gap-2">
+                  {isInCart ? (
+                    <>
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>{quantity > 0 ? `Add Another (${quantity} in cart)` : 'Add to Cart'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      <span>Add to Cart</span>
+                    </>
+                  )}
+                </div>
               </button>
+              
+              {isInCart && (
+                <div className="mt-3 text-center">
+                  <span className="text-sm text-brand-700 font-medium">
+                    ✓ {quantity} item{quantity > 1 ? 's' : ''} in your cart
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
