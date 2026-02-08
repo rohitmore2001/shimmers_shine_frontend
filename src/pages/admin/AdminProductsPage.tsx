@@ -11,6 +11,7 @@ type Product = {
   currency: 'INR' | 'USD' | 'EUR'
   metal: string
   image: string
+  images?: string[]
   rating: number | null
   active: boolean
 }
@@ -34,6 +35,8 @@ export default function AdminProductsPage() {
   const [currency, setCurrency] = useState<'INR' | 'USD' | 'EUR'>('INR')
   const [metal, setMetal] = useState('')
   const [image, setImage] = useState('')
+  const [images, setImages] = useState<string[]>([])
+  const [imageInput, setImageInput] = useState('')
   const [rating, setRating] = useState('')
   const [active, setActive] = useState(true)
 
@@ -45,8 +48,21 @@ export default function AdminProductsPage() {
     setCurrency('INR')
     setMetal('')
     setImage('')
+    setImages([])
+    setImageInput('')
     setRating('')
     setActive(true)
+  }
+
+  function addImage() {
+    if (imageInput.trim() && !images.includes(imageInput.trim())) {
+      setImages([...images, imageInput.trim()])
+      setImageInput('')
+    }
+  }
+
+  function removeImage(index: number) {
+    setImages(images.filter((_, i) => i !== index))
   }
 
   function openCreate() {
@@ -64,8 +80,10 @@ export default function AdminProductsPage() {
     setCurrency(p.currency)
     setMetal(p.metal || '')
     setImage(p.image)
-    setRating(p.rating === null || p.rating === undefined ? '' : String(p.rating))
-    setActive(Boolean(p.active))
+    setImages(p.images || [])
+    setImageInput('')
+    setRating(p.rating?.toString() || '')
+    setActive(p.active)
     setEditOpen(true)
   }
 
@@ -107,6 +125,7 @@ export default function AdminProductsPage() {
       currency,
       metal,
       image,
+      images: images.length > 0 ? images : [image], // Use images array or fallback to single image
       rating: rating ? Number(rating) : undefined,
       active,
     })
@@ -125,6 +144,7 @@ export default function AdminProductsPage() {
       currency,
       metal,
       image,
+      images: images.length > 0 ? images : [image], // Use images array or fallback to single image
       rating: rating ? Number(rating) : null,
       active,
     })
@@ -294,10 +314,53 @@ export default function AdminProductsPage() {
           <input
             value={image}
             onChange={(e) => setImage(e.target.value)}
-            placeholder="image URL"
+            placeholder="Primary image URL"
             className="md:col-span-2 w-full rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
             required
           />
+
+          {/* Multiple Images Management */}
+          <div className="md:col-span-2 space-y-3">
+            <div className="text-sm font-medium text-brand-900">Additional Images</div>
+            <div className="flex gap-2">
+              <input
+                value={imageInput}
+                onChange={(e) => setImageInput(e.target.value)}
+                placeholder="Add image URL"
+                className="flex-1 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
+              />
+              <button
+                type="button"
+                onClick={addImage}
+                className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-900 transition hover:bg-brand-100"
+              >
+                Add
+              </button>
+            </div>
+            
+            {images.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs text-brand-700">Additional images ({images.length}):</div>
+                <div className="flex flex-wrap gap-2">
+                  {images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="group relative flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm"
+                    >
+                      <span className="truncate max-w-[200px]">{img}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="rounded-full bg-red-100 p-1 text-red-600 opacity-0 transition group-hover:opacity-100"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <label className="md:col-span-2 flex items-center gap-2 text-sm text-brand-800">
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
@@ -380,10 +443,53 @@ export default function AdminProductsPage() {
           <input
             value={image}
             onChange={(e) => setImage(e.target.value)}
-            placeholder="image URL"
+            placeholder="Primary image URL"
             className="md:col-span-2 w-full rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
             required
           />
+
+          {/* Multiple Images Management */}
+          <div className="md:col-span-2 space-y-3">
+            <div className="text-sm font-medium text-brand-900">Additional Images</div>
+            <div className="flex gap-2">
+              <input
+                value={imageInput}
+                onChange={(e) => setImageInput(e.target.value)}
+                placeholder="Add image URL"
+                className="flex-1 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
+              />
+              <button
+                type="button"
+                onClick={addImage}
+                className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-medium text-brand-900 transition hover:bg-brand-100"
+              >
+                Add
+              </button>
+            </div>
+            
+            {images.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs text-brand-700">Additional images ({images.length}):</div>
+                <div className="flex flex-wrap gap-2">
+                  {images.map((img, index) => (
+                    <div
+                      key={index}
+                      className="group relative flex items-center gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm"
+                    >
+                      <span className="truncate max-w-[200px]">{img}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="rounded-full bg-red-100 p-1 text-red-600 opacity-0 transition group-hover:opacity-100"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <label className="md:col-span-2 flex items-center gap-2 text-sm text-brand-800">
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />

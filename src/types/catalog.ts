@@ -11,7 +11,8 @@ export type Product = {
   price: number
   currency: 'INR' | 'USD' | 'EUR'
   metal?: string
-  image: string
+  image: string // Keep for backward compatibility
+  images?: string[] // New field for multiple images
   rating?: number
 }
 

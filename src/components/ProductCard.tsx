@@ -5,32 +5,49 @@ import { formatMoney } from '../utils/money'
 export default function ProductCard({
   product,
   onAdd,
+  onQuickView,
   inCart,
   quantity,
 }: {
   product: Product
   onAdd: (productId: string) => void
+  onQuickView?: (product: Product) => void
   inCart?: boolean
   quantity?: number
 }) {
   const qty = quantity ?? 0
   const isInCart = Boolean(inCart || qty > 0)
 
+  // Get first image for display
+  const displayImage = product.images && product.images.length > 0 
+    ? product.images[0] 
+    : product.image
+
   return (
     <div
       className={[
-        'group relative overflow-hidden rounded-2xl border bg-white shadow-soft transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow focus-within:shadow',
+        'group relative overflow-hidden rounded-2xl border bg-white shadow-soft transition duration-300 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow focus-within:shadow cursor-pointer',
         isInCart ? 'border-brand-300 ring-2 ring-brand-400/40' : 'border-brand-200',
       ].join(' ')}
+      onClick={() => onQuickView?.(product)}
     >
       <div className="aspect-square overflow-hidden bg-brand-200 sm:aspect-[4/5]">
         <img
-          src={product.image}
+          src={displayImage}
           alt={product.name}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.06]"
           loading="lazy"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-black/0 to-black/0 opacity-0 transition group-hover:opacity-100" />
+        
+        {/* Quick View Indicator */}
+        {onQuickView && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
+            <div className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-gray-900">
+              Quick View
+            </div>
+          </div>
+        )}
       </div>
 
       {isInCart ? (
@@ -67,7 +84,10 @@ export default function ProductCard({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => onAdd(product.id)}
+              onClick={(e) => {
+                e.stopPropagation()
+                onAdd(product.id)
+              }}
               className="hidden rounded-full bg-brand-900 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-white shadow-soft transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] sm:inline-flex"
             >
               {isInCart ? 'Add one more' : 'Add to cart'}
@@ -75,7 +95,10 @@ export default function ProductCard({
 
             <button
               type="button"
-              onClick={() => onAdd(product.id)}
+              onClick={(e) => {
+                e.stopPropagation()
+                onAdd(product.id)
+              }}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-900 text-white shadow-soft transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] sm:hidden"
               aria-label="Add one"
             >

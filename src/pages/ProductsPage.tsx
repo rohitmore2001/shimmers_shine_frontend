@@ -6,6 +6,7 @@ import { addToCart } from '../features/cart/cartSlice'
 import { selectCartLines } from '../features/cart/selectors'
 import { selectCategories, selectCatalogStatus } from '../features/catalog/selectors'
 import ProductCard from '../components/ProductCard'
+import ProductDetailModal from '../components/ProductDetailModal'
 import { loadCatalog } from '../features/catalog/catalogSlice'
 import { apiClient } from '../services/apiClient'
 import type { Product } from '../types/catalog'
@@ -28,6 +29,8 @@ export default function ProductsPage() {
   const [hasMore, setHasMore] = useState(true)
   const [productsLoading, setProductsLoading] = useState(false)
   const [productsError, setProductsError] = useState<string | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const inFlightRef = useRef(false)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
@@ -42,6 +45,20 @@ export default function ProductsPage() {
 
   const selectedCategoryName =
     categories?.find((c) => c.id === selectedCategory)?.name || (selectedCategory ? selectedCategory : 'All')
+
+  const handleQuickView = useCallback((product: Product) => {
+    setSelectedProduct(product)
+    setIsModalOpen(true)
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false)
+    setSelectedProduct(null)
+  }, [])
+
+  const handleAddToCart = useCallback((productId: string) => {
+    dispatch(addToCart({ productId }))
+  }, [dispatch])
 
   const fetchPage = useCallback(
     async (nextPage: number, mode: 'replace' | 'append') => {
@@ -273,7 +290,8 @@ export default function ProductsPage() {
                     <ProductCard
                       product={p}
                       quantity={cartQtyByProductId[p.id] || 0}
-                      onAdd={(productId) => dispatch(addToCart({ productId }))}
+                      onAdd={handleAddToCart}
+                      onQuickView={handleQuickView}
                     />
                   </motion.div>
                 ))}
@@ -298,6 +316,16 @@ export default function ProductsPage() {
           {catalogStatus === 'failed' ? <div className="text-xs text-red-700">Failed to load categories.</div> : null}
         </section>
       </div>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onAddToCart={handleAddToCart}
+        inCart={selectedProduct ? Boolean(cartQtyByProductId[selectedProduct.id]) : false}
+        quantity={selectedProduct ? cartQtyByProductId[selectedProduct.id] || 0 : 0}
+      />
     </div>
   )
 }

@@ -186,8 +186,8 @@ export default function Layout() {
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 md:grid-cols-3">
           <div>
             <div className="font-display text-lg">Get in Touch</div>
-            <div className="mt-2 text-sm text-brand-700">support@jwellery.local</div>
-            <div className="text-sm text-brand-700">+91 90000 00000</div>
+            <div className="mt-2 text-sm text-brand-700">shimmersandshines15@gmail.com</div>
+            {/* <div className="text-sm text-brand-700">+91 90000 00000</div> */}
           </div>
           {/* <div>
             <div className="text-sm font-semibold text-brand-900">Visit</div>

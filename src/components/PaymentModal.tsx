@@ -273,7 +273,7 @@ export default function PaymentModal({
                                         </div>
                                     </label>
 
-                                    <label className="block cursor-pointer">
+                                    {/* <label className="block cursor-pointer">
                                         <input
                                             type="radio"
                                             name="payment"
@@ -297,7 +297,7 @@ export default function PaymentModal({
                                             </div>
                                             {method === 'cod' && <CheckCircle2 className="h-5 w-5 text-brand-900" />}
                                         </div>
-                                    </label>
+                                    </label> */}
                                 </div>
 
                                 {method === 'upi' ? (

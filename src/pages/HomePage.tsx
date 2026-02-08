@@ -188,7 +188,7 @@ export default function HomePage() {
           <div className="max-w-md space-y-4">
             <div className="font-display text-3xl tracking-wide">FROM ME TO ME</div>
             <div className="text-sm text-brand-900/80">
-              Celebrate small wins. Pick a piece that reminds you how far you’ve come.
+              Every piece of jewellery has a story, what’s yours?
             </div>
             <Link
               to="/products"
@@ -310,7 +310,7 @@ export default function HomePage() {
             <ul className="mt-1 space-y-1 text-sm text-brand-800">
               <li>• Customized / engraved jewellery</li>
               <li>• Sale or discounted items</li>
-              <li>• Products damaged due to perfume, sweat, or chemicals</li>
+              {/* <li>• Products damaged due to perfume, sweat, or chemicals</li> */}
             </ul>
           </div>
 
