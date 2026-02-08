@@ -53,6 +53,9 @@ export default function ProductCard({
       {isInCart ? (
         <div className="absolute left-3 top-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white/90 px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] text-brand-900 shadow-soft backdrop-blur sm:px-3 sm:text-[11px]">
+            <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
             IN CART
             <span className="rounded-full bg-brand-200 px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-brand-900">
               x{qty}
@@ -88,9 +91,29 @@ export default function ProductCard({
                 e.stopPropagation()
                 onAdd(product.id)
               }}
-              className="hidden rounded-full bg-brand-900 px-4 py-2 text-xs font-semibold tracking-[0.14em] text-white shadow-soft transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] sm:inline-flex"
+              className={`hidden rounded-full px-4 py-2 text-xs font-semibold tracking-[0.14em] text-white shadow-soft transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] sm:inline-flex ${
+                isInCart 
+                  ? 'bg-brand-800 hover:bg-brand-900' 
+                  : 'bg-brand-900 hover:bg-black'
+              }`}
             >
-              {isInCart ? 'Add one more' : 'Add to cart'}
+              <div className="flex items-center gap-1.5">
+                {isInCart ? (
+                  <>
+                    <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    In Cart
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Add to Cart
+                  </>
+                )}
+              </div>
             </button>
 
             <button
@@ -99,10 +122,20 @@ export default function ProductCard({
                 e.stopPropagation()
                 onAdd(product.id)
               }}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-brand-900 text-white shadow-soft transition hover:bg-black focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] sm:hidden"
-              aria-label="Add one"
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full text-white shadow-soft transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 active:scale-[0.98] sm:hidden ${
+                isInCart 
+                  ? 'bg-brand-800 hover:bg-brand-900' 
+                  : 'bg-brand-900 hover:bg-black'
+              }`}
+              aria-label={isInCart ? 'Add one more' : 'Add to cart'}
             >
-              <Plus className="h-4 w-4" />
+              {isInCart ? (
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
             </button>
           </div>
         </div>
