@@ -9,6 +9,12 @@ import mainPage from './mainPage.jpg'
 import metome from './metome.jpg'
 import newCollection from './newCollection.jpg'
 import logo from './logo.jpeg'
+import earRings from './earRings.png'
+import rings from './rings.png'
+import bracelet from './bracelet.png'
+import necklace from './necklace.png'
+import newColl from './ourNewCollection.png'
+import metomeImg from './meTome.png'
 
 
 export const images = {
@@ -23,6 +29,12 @@ export const images = {
   metome,
   newCollection,
   logo,
+  earRings,
+  rings,
+  bracelet,
+  necklace,
+  newColl,
+  metomeImg
 } as const
 
 export {
@@ -37,4 +49,10 @@ export {
   metome,
   newCollection,
   logo,
+  earRings,
+  rings,
+  bracelet,
+  necklace,
+  newColl,
+  metomeImg
 }

@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { item1, item2, item3, item4, mainPage, metome, newCollection } from '../assets/images'
+import { mainPage,   rings, bracelet, necklace, earRings, metomeImg, newColl } from '../assets/images'
 
 const previewTiles = [
-  { image: item1, label: 'Rings', categoryId: 'rings' },
-  { image: item2, label: 'Bracelets', categoryId: 'bracelets' },
-  { image: item3, label: 'Necklaces', categoryId: 'necklaces' },
-  { image: item4, label: 'Earrings', categoryId: 'earrings' },
+  { image: rings, label: 'Rings', categoryId: 'rings' },
+  { image: bracelet, label: 'Bracelets', categoryId: 'bracelets' },
+  { image: necklace, label: 'Necklaces', categoryId: 'necklaces' },
+  { image: earRings, label: 'Earrings', categoryId: 'earrings' },
 ]
 
 export default function HomePage() {
@@ -176,7 +176,7 @@ export default function HomePage() {
           transition={{ duration: 0.7, ease }}
           className="overflow-hidden rounded-3xl shadow-soft"
         >
-          <img src={metome} alt="From me to me" className="h-full w-full object-cover" />
+          <img src={metomeImg} alt="From me to me" className="h-full w-full object-cover" />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 18 }}
@@ -229,7 +229,7 @@ export default function HomePage() {
           transition={{ duration: 0.7, ease }}
           className="overflow-hidden rounded-3xl shadow-soft"
         >
-          <img src={newCollection} alt="New collection" className="h-full w-full object-cover" />
+          <img src={newColl} alt="New collection" className="h-full w-full object-cover" />
         </motion.div>
       </section>
 
