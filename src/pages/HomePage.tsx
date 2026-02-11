@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { mainPage,   rings, bracelet, necklace, earRings, metomeImg, newColl } from '../assets/images'
+import {rings, bracelet, necklace, earRings, metomeImg, newColl, goldenRings } from '../assets/images'
 
 const previewTiles = [
   { image: rings, label: 'Rings', categoryId: 'rings' },
@@ -110,7 +110,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, ease }}
             className="overflow-hidden rounded-[28px]"
           >
-            <img src={mainPage} alt="Jewellery hero" className="h-full w-full object-cover" />
+            <img src={metomeImg} alt="Jewellery hero" className="h-full w-full object-cover" />
           </motion.div>
         </div>
       </section>
@@ -176,7 +176,7 @@ export default function HomePage() {
           transition={{ duration: 0.7, ease }}
           className="overflow-hidden rounded-3xl shadow-soft"
         >
-          <img src={metomeImg} alt="From me to me" className="h-full w-full object-cover" />
+          <img src={goldenRings} alt="From me to me" className="h-full w-full object-cover" />
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 18 }}

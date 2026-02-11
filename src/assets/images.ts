@@ -15,6 +15,7 @@ import bracelet from './bracelet.png'
 import necklace from './necklace.png'
 import newColl from './ourNewCollection.png'
 import metomeImg from './meTome.png'
+import goldenRings from './goldenRings.png'
 
 
 export const images = {
@@ -34,7 +35,8 @@ export const images = {
   bracelet,
   necklace,
   newColl,
-  metomeImg
+  metomeImg,
+  goldenRings
 } as const
 
 export {
@@ -54,5 +56,6 @@ export {
   bracelet,
   necklace,
   newColl,
-  metomeImg
+  metomeImg,
+  goldenRings
 }
