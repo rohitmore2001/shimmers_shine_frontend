@@ -239,12 +239,12 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-brand-200 bg-brand-50 p-5">
+          {/* <div className="rounded-2xl border border-brand-200 bg-brand-50 p-5">
             <div className="text-sm font-semibold">Live products</div>
             <div className="mt-2 text-sm text-brand-800/80">
               Products load from the backend with category filtering and pagination.
             </div>
-          </div>
+          </div> */}
         </aside>
 
         <section className="space-y-4">
