@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Menu, ShoppingBag, UserRound, X } from 'lucide-react'
+import { Home, Menu, ShoppingBag, UserRound, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { selectCartCount } from '../features/cart/selectors'
@@ -25,6 +25,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const loginHref = `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`
+  const showFloatingHome = location.pathname !== '/'
 
   useEffect(() => {
     if (catalogStatus === 'idle') dispatch(loadCatalog())
@@ -203,6 +204,16 @@ export default function Layout() {
           </div> */}
         </div>
       </footer>
+
+      {showFloatingHome ? (
+        <Link
+          to="/"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-brand-900 text-white shadow-lg transition-all hover:bg-black hover:scale-110 md:bottom-8 md:right-8"
+          aria-label="Go to homepage"
+        >
+          <Home className="h-6 w-6 flex-shrink-0" />
+        </Link>
+      ) : null}
     </div>
   )
 }
