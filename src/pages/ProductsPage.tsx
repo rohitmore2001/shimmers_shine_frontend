@@ -83,15 +83,18 @@ export default function ProductsPage() {
           hasMore: boolean
         }>('/api/products', { params })
 
-        setTotal(Number(data.total || 0))
-        setHasMore(Boolean(data.hasMore))
-        setPage(Number(data.page || nextPage))
+        const totalNext = Number(data.total || 0)
+        const itemsNext = data.items || []
+
+        setTotal(totalNext)
+        setPage(nextPage)
+        setHasMore((nextPage - 1) * PAGE_SIZE + itemsNext.length < totalNext)
 
         setItems((prev) => {
-          if (mode === 'replace') return data.items || []
+          if (mode === 'replace') return itemsNext
           const existing = new Set(prev.map((p) => p.id))
           const merged = [...prev]
-          for (const p of data.items || []) {
+          for (const p of itemsNext) {
             if (!existing.has(p.id)) merged.push(p)
           }
           return merged
