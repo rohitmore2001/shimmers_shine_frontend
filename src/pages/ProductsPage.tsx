@@ -88,7 +88,7 @@ export default function ProductsPage() {
 
         setTotal(totalNext)
         setPage(nextPage)
-        setHasMore((nextPage - 1) * PAGE_SIZE + itemsNext.length < totalNext)
+        setHasMore(data.hasMore || false)
 
         setItems((prev) => {
           if (mode === 'replace') return itemsNext
@@ -163,7 +163,7 @@ export default function ProductsPage() {
 
     io.observe(el)
     return () => io.disconnect()
-  }, [fetchPage, hasMore, page])
+  }, [hasMore, page])
 
   return (
     <div className="space-y-6">
@@ -311,8 +311,20 @@ export default function ProductsPage() {
           {items.length > 0 ? (
             <div className="flex flex-col items-center gap-3">
               {productsLoading && items.length > 0 ? <div className="text-sm text-brand-700">Loading more…</div> : null}
-              {hasMore ? <div ref={sentinelRef} className="h-10 w-full" /> : null}
-              {!hasMore ? <div className="text-xs text-brand-700">You’ve reached the end.</div> : null}
+              {hasMore ? (
+                <>
+                  <div ref={sentinelRef} className="h-10 w-full" />
+                  <button
+                    onClick={() => fetchPage(page + 1, 'append')}
+                    disabled={productsLoading}
+                    className="rounded-full bg-brand-900 px-6 py-3 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {productsLoading ? 'Loading...' : 'Load More'}
+                  </button>
+                </>
+              ) : (
+                <div className="text-xs text-brand-700">You've reached the end.</div>
+              )}
             </div>
           ) : null}
 
