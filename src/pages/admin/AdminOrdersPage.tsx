@@ -130,54 +130,64 @@ export default function AdminOrdersPage() {
           <div className="mt-3 text-sm text-brand-700">No orders yet.</div>
         ) : (
           <div className="mt-4 overflow-auto rounded-2xl border border-brand-100">
-            <table className="w-full table-fixed text-left text-sm">
+            <table className="w-full min-w-[1100px] table-fixed text-left text-sm">
               <thead>
                 <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
-                  <th className="w-[140px] px-3 py-3">Order ID</th>
-                  <th className="w-[220px] px-3 py-3">Items</th>
-                  <th className="w-[180px] px-3 py-3">Customer</th>
-                  <th className="w-[220px] px-3 py-3">Delivery</th>
-                  <th className="w-[140px] px-3 py-3">Created</th>
-                  <th className="w-[110px] px-3 py-3">Amount</th>
+                  <th className="w-[150px] px-3 py-3">Order</th>
+                  <th className="w-[260px] px-3 py-3">Items</th>
+                  <th className="w-[220px] px-3 py-3">Customer</th>
+                  <th className="w-[260px] px-3 py-3">Delivery</th>
+                  <th className="w-[150px] px-3 py-3">Created</th>
+                  <th className="w-[120px] px-3 py-3">Total</th>
                   <th className="w-[110px] px-3 py-3">Coupon</th>
-                  <th className="w-[160px] px-3 py-3">Order Status</th>
-                  <th className="w-[160px] px-3 py-3">Delivery Status</th>
-                  <th className="w-[140px] px-3 py-3">Payment</th>
-                  <th className="w-[140px] px-3 py-3">Actions</th>
+                  <th className="w-[170px] px-3 py-3">Order Status</th>
+                  <th className="w-[170px] px-3 py-3">Delivery Status</th>
+                  <th className="w-[150px] px-3 py-3">Payment</th>
+                  <th className="w-[120px] px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((o) => (
                   <tr key={o.orderId} className="border-t border-brand-100 align-top">
-                    <td className="px-3 py-3 font-mono text-xs">{o.orderId}</td>
+                    <td className="px-3 py-3">
+                      <div className="space-y-1">
+                        <div className="font-mono text-[11px] text-brand-700">{o.orderId}</div>
+                        <div className="text-[11px] text-brand-600">
+                          {o.discountAmount > 0 ? `Discount: ${o.discountAmount}` : 'No discount'}
+                        </div>
+                      </div>
+                    </td>
+
                     <td className="px-3 py-3 text-xs text-brand-700">
                       {o.lines && o.lines.length > 0 ? (
-                        <div className="space-y-0.5">
-                          {o.lines.slice(0, 3).map((l) => (
-                            <div key={`${o.orderId}-${l.productId}`}>
-                              <div className="text-brand-900">{l.productName || l.productId || '—'}</div>
-                              <div className="font-mono text-[11px] text-brand-600">
-                                {l.productId}
-                                {l.quantity > 1 ? ` ×${l.quantity}` : ''}
+                        <div className="space-y-1">
+                          {o.lines.slice(0, 4).map((l) => (
+                            <div key={`${o.orderId}-${l.productId}`} className="leading-snug">
+                              <div className="text-brand-900">
+                                {l.productName || '—'}
+                                <span className="ml-1 font-mono text-[11px] text-brand-600">×{l.quantity}</span>
                               </div>
                             </div>
                           ))}
-                          {o.lines.length > 3 ? <div className="text-[11px] text-brand-600">+{o.lines.length - 3} more</div> : null}
+                          {o.lines.length > 4 ? <div className="text-[11px] text-brand-600">+{o.lines.length - 4} more</div> : null}
                         </div>
                       ) : (
                         '—'
                       )}
                     </td>
+
                     <td className="px-3 py-3 text-xs">
                       {o.customer ? (
                         <div>
                           <div className="font-semibold text-brand-900">{o.customer.name || '—'}</div>
                           <div className="text-brand-700">{o.customer.email || '—'}</div>
+                          {o.customer.phone ? <div className="text-[11px] text-brand-600">{o.customer.phone}</div> : null}
                         </div>
                       ) : (
                         '—'
                       )}
                     </td>
+
                     <td className="px-3 py-3 text-xs text-brand-700">
                       {o.delivery ? (
                         <div>
@@ -192,9 +202,10 @@ export default function AdminOrdersPage() {
                         '—'
                       )}
                     </td>
-                    <td className="px-3 py-3 text-xs text-brand-700">{new Date(o.createdAt).toLocaleString()}</td>
-                    <td className="px-3 py-3">
-                      {o.total} {o.currency}
+
+                    <td className="px-3 py-3 text-xs text-brand-700">{o.createdAt ? new Date(o.createdAt).toLocaleString() : '—'}</td>
+                    <td className="px-3 py-3 font-semibold">
+                      {Number.isFinite(o.total) ? o.total : 0} {o.currency || 'INR'}
                     </td>
                     <td className="px-3 py-3 text-xs">{o.couponCode || '—'}</td>
                     <td className="px-3 py-3">
@@ -237,9 +248,9 @@ export default function AdminOrdersPage() {
                       </select>
                     </td>
                     <td className="px-3 py-3">
-                      <div className="flex gap-1">
+                      <div className="flex flex-col gap-1">
                         {o.orderStatus === 'return_requested' && (
-                          <div className="flex gap-1">
+                          <div className="flex flex-wrap gap-1">
                             <button
                               onClick={() => handleReturnAction(o.orderId, 'approve')}
                               className="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-200"
@@ -255,7 +266,7 @@ export default function AdminOrdersPage() {
                           </div>
                         )}
                         {o.orderStatus === 'replacement_requested' && (
-                          <div className="flex gap-1">
+                          <div className="flex flex-wrap gap-1">
                             <button
                               onClick={() => handleReplacementAction(o.orderId, 'approve')}
                               className="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-200"

@@ -15,7 +15,9 @@ export function clearAdminToken() {
 }
 
 export const adminApiClient = axios.create({
-  baseURL: import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL || '' : '',
+  baseURL: import.meta.env.PROD
+    ? import.meta.env.VITE_API_BASE_URL || 'https://api.shimmersnshine.in'
+    : '',
   headers: {
     'Content-Type': 'application/json',
   },
