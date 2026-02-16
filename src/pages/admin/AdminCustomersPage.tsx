@@ -155,7 +155,7 @@ export default function AdminCustomersPage() {
             <table className="w-full min-w-[1200px] table-fixed text-left text-sm">
               <thead>
                 <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
-                  <th className="w-[140px] px-3 py-3">ID</th>
+                  {/* <th className="w-[140px] px-3 py-3">ID</th> */}
                   <th className="w-[260px] px-3 py-3">Name</th>
                   <th className="w-[280px] px-3 py-3">Email</th>
                   <th className="w-[180px] px-3 py-3">Phone</th>
@@ -169,7 +169,7 @@ export default function AdminCustomersPage() {
               <tbody>
                 {items.map((c) => (
                   <tr key={c.id} className="border-t border-brand-100 align-top">
-                    <td className="px-3 py-3 font-mono text-xs">{c.id}</td>
+                    {/* <td className="px-3 py-3 font-mono text-xs">{c.id}</td> */}
                     <td className="px-3 py-3">{c.name}</td>
                     <td className="px-3 py-3 text-xs text-brand-700">{c.email}</td>
                     <td className="px-3 py-3">{c.phone || '—'}</td>
