@@ -213,6 +213,12 @@ publicRouter.post('/orders', requireCustomer, async (req, res) => {
     })
     .filter(Boolean)
 
+  const linesWithNames = detailed.map((x) => ({
+    productId: x.product.id,
+    productName: x.product.name,
+    quantity: x.quantity,
+  }))
+
   if (detailed.length === 0) {
     return res.status(400).json({ message: 'No valid product lines' })
   }
@@ -309,7 +315,7 @@ publicRouter.post('/orders', requireCustomer, async (req, res) => {
       email: req.customer?.email || '',
       phone: safeDelivery.phone,
     },
-    lines: normalized,
+    lines: linesWithNames,
     subtotal,
     discountAmount,
     total,

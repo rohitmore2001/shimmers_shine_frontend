@@ -13,7 +13,7 @@ import { requireAdmin } from './middleware/requireAdmin.js'
 export function createApp() {
   const app = express()
 
-  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173'
+  const corsOrigin = process.env.CORS_ORIGIN || 'https://api.shimmersnshine.in'
   const origin = (() => {
     if (corsOrigin === '*') return true
 

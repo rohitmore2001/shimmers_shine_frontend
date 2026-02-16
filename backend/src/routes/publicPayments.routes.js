@@ -85,7 +85,14 @@ async function computeOrderTotals({ lines, coupon }) {
   if (discountAmount > subtotal) discountAmount = subtotal
 
   const total = Math.max(0, subtotal - discountAmount)
-  return { normalized, subtotal, discountAmount, total, couponCode, currency }
+
+  const linesWithNames = detailed.map((x) => ({
+    productId: x.product.id,
+    productName: x.product.name,
+    quantity: x.quantity,
+  }))
+
+  return { normalized, linesWithNames, subtotal, discountAmount, total, couponCode, currency }
 }
 
 // Create internal Order + Razorpay Order
@@ -97,7 +104,7 @@ publicPaymentsRouter.post('/razorpay/create-order', requireCustomer, async (req,
   }
 
   try {
-    const { normalized, subtotal, discountAmount, total, couponCode, currency } = await computeOrderTotals({
+    const { normalized, linesWithNames, subtotal, discountAmount, total, couponCode, currency } = await computeOrderTotals({
       lines,
       coupon,
     })
@@ -157,7 +164,7 @@ publicPaymentsRouter.post('/razorpay/create-order', requireCustomer, async (req,
         email: customer.email,
         phone: safeDelivery.phone,
       },
-      lines: normalized,
+      lines: linesWithNames,
       subtotal,
       discountAmount,
       total,

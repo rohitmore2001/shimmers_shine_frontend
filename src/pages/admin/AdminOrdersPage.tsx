@@ -20,6 +20,12 @@ type Delivery = {
   pincode?: string
 } | null
 
+type OrderLine = {
+  productId: string
+  productName?: string
+  quantity: number
+}
+
 type AdminOrder = {
   orderId: string
   customer: OrderCustomer | null
@@ -31,6 +37,7 @@ type AdminOrder = {
   total: number
   couponCode: string | null
   currency: string
+  lines?: OrderLine[]
   delivery?: Delivery
   returnRequest?: {
     reason: string
@@ -109,6 +116,7 @@ export default function AdminOrdersPage() {
               <thead>
                 <tr className="text-xs text-brand-700">
                   <th className="py-2">Order ID</th>
+                  <th className="py-2">Items</th>
                   <th className="py-2">Customer</th>
                   <th className="py-2">Delivery</th>
                   <th className="py-2">Created</th>
@@ -124,6 +132,20 @@ export default function AdminOrdersPage() {
                 {items.map((o) => (
                   <tr key={o.orderId} className="border-t border-brand-100">
                     <td className="py-2 font-mono text-xs">{o.orderId}</td>
+                    <td className="py-2 text-xs text-brand-700">
+                      {o.lines && o.lines.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {o.lines.slice(0, 3).map((l) => (
+                            <div key={`${o.orderId}-${l.productId}`}>
+                              {(l.productName || l.productId) + (l.quantity > 1 ? ` ×${l.quantity}` : '')}
+                            </div>
+                          ))}
+                          {o.lines.length > 3 ? <div className="text-[11px] text-brand-600">+{o.lines.length - 3} more</div> : null}
+                        </div>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                     <td className="py-2 text-xs">
                       {o.customer ? (
                         <div>

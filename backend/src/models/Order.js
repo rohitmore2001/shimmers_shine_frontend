@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 const OrderLineSchema = new mongoose.Schema(
   {
     productId: { type: String, required: true, trim: true },
+    productName: { type: String, trim: true },
     quantity: { type: Number, required: true, min: 1 },
   },
   { _id: false },
