@@ -14,8 +14,14 @@ export function clearAdminToken() {
   localStorage.removeItem(tokenKey)
 }
 
+function normalizeBaseUrl(raw: string) {
+  const trimmed = (raw || '').trim()
+  if (!trimmed) return ''
+  return trimmed.replace(/\/+$/, '').replace(/\/api$/, '')
+}
+
 export const adminApiClient = axios.create({
-  baseURL: import.meta.env.PROD ? import.meta.env.VITE_API_BASE_URL || '' : '',
+  baseURL: import.meta.env.PROD ? normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL || '') : '',
   headers: {
     'Content-Type': 'application/json',
   },
