@@ -127,7 +127,7 @@ export default function AdminCategoriesPage() {
                   <tr key={c.id} className="border-t border-brand-100 align-top">
                     <td className="px-3 py-3 font-mono text-xs">{c.id}</td>
                     <td className="px-3 py-3">{c.name}</td>
-                    <td className="px-3 py-3 font-mono text-xs text-brand-600"><img src={c.image} alt={c.name} className="h-15 w-15 rounded" /></td>
+                    <td className="px-3 py-3 font-mono text-xs text-brand-600"><img src={c.image} alt={c.name}  style={{borderRadius: '10%' }} className="h-15 w-15" /></td>
                     <td className="px-3 py-3">
                       <div className="flex items-center gap-1">
                         <button
