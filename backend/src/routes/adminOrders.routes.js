@@ -1,10 +1,24 @@
 import { Router } from 'express'
 import { Order } from '../models/Order.js'
+import { Product } from '../models/Product.js'
 
 export const adminOrdersRouter = Router()
 
 adminOrdersRouter.get('/', async (_req, res) => {
   const orders = await Order.find({}).sort({ createdAt: -1 }).lean()
+
+  const missingNameIds = new Set()
+  for (const o of orders) {
+    for (const l of o.lines || []) {
+      if (!l?.productName && l?.productId) missingNameIds.add(String(l.productId))
+    }
+  }
+
+  const products = missingNameIds.size
+    ? await Product.find({ id: { $in: Array.from(missingNameIds) } }).select({ id: 1, name: 1 }).lean()
+    : []
+  const nameById = new Map(products.map((p) => [p.id, p.name]))
+
   res.json(
     orders.map((o) => ({
       orderId: o.orderId,
@@ -17,7 +31,10 @@ adminOrdersRouter.get('/', async (_req, res) => {
       total: o.total ?? o.subtotal,
       couponCode: o.couponCode || null,
       currency: o.currency,
-      lines: o.lines,
+      lines: (o.lines || []).map((l) => ({
+        ...l,
+        productName: l?.productName || nameById.get(String(l.productId)) || '',
+      })),
       delivery: o.delivery || null,
       payment: o.payment || null,
       distance: o.distance || null,

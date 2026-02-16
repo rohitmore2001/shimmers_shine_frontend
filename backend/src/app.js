@@ -42,12 +42,22 @@ export function createApp() {
   app.use('/api', publicRouter)
   app.use('/api/payments', publicPaymentsRouter)
 
+  app.use('/api/api', publicRouter)
+  app.use('/api/api/payments', publicPaymentsRouter)
+
   app.use('/api/admin/auth', adminAuthRouter)
   app.use('/api/admin/categories', requireAdmin, adminCategoriesRouter)
   app.use('/api/admin/products', requireAdmin, adminProductsRouter)
   app.use('/api/admin/coupons', requireAdmin, adminCouponsRouter)
   app.use('/api/admin/orders', requireAdmin, adminOrdersRouter)
   app.use('/api/admin/customers', requireAdmin, adminCustomersRouter)
+
+  app.use('/api/api/admin/auth', adminAuthRouter)
+  app.use('/api/api/admin/categories', requireAdmin, adminCategoriesRouter)
+  app.use('/api/api/admin/products', requireAdmin, adminProductsRouter)
+  app.use('/api/api/admin/coupons', requireAdmin, adminCouponsRouter)
+  app.use('/api/api/admin/orders', requireAdmin, adminOrdersRouter)
+  app.use('/api/api/admin/customers', requireAdmin, adminCustomersRouter)
 
   return app
 }

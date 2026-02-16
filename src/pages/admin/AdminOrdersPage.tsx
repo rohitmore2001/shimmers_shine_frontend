@@ -129,33 +129,33 @@ export default function AdminOrdersPage() {
         ) : items.length === 0 ? (
           <div className="mt-3 text-sm text-brand-700">No orders yet.</div>
         ) : (
-          <div className="mt-4 overflow-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-auto rounded-2xl border border-brand-100">
+            <table className="w-full table-fixed text-left text-sm">
               <thead>
-                <tr className="text-xs text-brand-700">
-                  <th className="py-2">Order ID</th>
-                  <th className="py-2">Items</th>
-                  <th className="py-2">Customer</th>
-                  <th className="py-2">Delivery</th>
-                  <th className="py-2">Created</th>
-                  <th className="py-2">Amount</th>
-                  <th className="py-2">Coupon</th>
-                  <th className="py-2">Order Status</th>
-                  <th className="py-2">Delivery Status</th>
-                  <th className="py-2">Payment Status</th>
-                  <th className="py-2">Actions</th>
+                <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
+                  <th className="w-[140px] px-3 py-3">Order ID</th>
+                  <th className="w-[220px] px-3 py-3">Items</th>
+                  <th className="w-[180px] px-3 py-3">Customer</th>
+                  <th className="w-[220px] px-3 py-3">Delivery</th>
+                  <th className="w-[140px] px-3 py-3">Created</th>
+                  <th className="w-[110px] px-3 py-3">Amount</th>
+                  <th className="w-[110px] px-3 py-3">Coupon</th>
+                  <th className="w-[160px] px-3 py-3">Order Status</th>
+                  <th className="w-[160px] px-3 py-3">Delivery Status</th>
+                  <th className="w-[140px] px-3 py-3">Payment</th>
+                  <th className="w-[140px] px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((o) => (
                   <tr key={o.orderId} className="border-t border-brand-100 align-top">
-                    <td className="py-2 font-mono text-xs">{o.orderId}</td>
-                    <td className="py-2 text-xs text-brand-700">
+                    <td className="px-3 py-3 font-mono text-xs">{o.orderId}</td>
+                    <td className="px-3 py-3 text-xs text-brand-700">
                       {o.lines && o.lines.length > 0 ? (
                         <div className="space-y-0.5">
                           {o.lines.slice(0, 3).map((l) => (
                             <div key={`${o.orderId}-${l.productId}`}>
-                              <div className="text-brand-900">{l.productName || '—'}</div>
+                              <div className="text-brand-900">{l.productName || l.productId || '—'}</div>
                               <div className="font-mono text-[11px] text-brand-600">
                                 {l.productId}
                                 {l.quantity > 1 ? ` ×${l.quantity}` : ''}
@@ -168,7 +168,7 @@ export default function AdminOrdersPage() {
                         '—'
                       )}
                     </td>
-                    <td className="py-2 text-xs">
+                    <td className="px-3 py-3 text-xs">
                       {o.customer ? (
                         <div>
                           <div className="font-semibold text-brand-900">{o.customer.name || '—'}</div>
@@ -178,7 +178,7 @@ export default function AdminOrdersPage() {
                         '—'
                       )}
                     </td>
-                    <td className="py-2 text-xs text-brand-700">
+                    <td className="px-3 py-3 text-xs text-brand-700">
                       {o.delivery ? (
                         <div>
                           <div className="font-semibold text-brand-900">{o.delivery.fullName || '—'}</div>
@@ -192,12 +192,12 @@ export default function AdminOrdersPage() {
                         '—'
                       )}
                     </td>
-                    <td className="py-2 text-xs text-brand-700">{new Date(o.createdAt).toLocaleString()}</td>
-                    <td className="py-2">
+                    <td className="px-3 py-3 text-xs text-brand-700">{new Date(o.createdAt).toLocaleString()}</td>
+                    <td className="px-3 py-3">
                       {o.total} {o.currency}
                     </td>
-                    <td className="py-2 text-xs">{o.couponCode || '—'}</td>
-                    <td className="py-2">
+                    <td className="px-3 py-3 text-xs">{o.couponCode || '—'}</td>
+                    <td className="px-3 py-3">
                       <select
                         value={o.orderStatus}
                         onChange={(e) => void update(o.orderId, { orderStatus: e.target.value as OrderStatus })}
@@ -236,7 +236,7 @@ export default function AdminOrdersPage() {
                         ))}
                       </select>
                     </td>
-                    <td className="py-2">
+                    <td className="px-3 py-3">
                       <div className="flex gap-1">
                         {o.orderStatus === 'return_requested' && (
                           <div className="flex gap-1">
