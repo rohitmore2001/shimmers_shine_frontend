@@ -167,6 +167,7 @@ export default function AdminOrdersPage() {
                                 {l.productName || '—'}
                                 <span className="ml-1 font-mono text-[11px] text-brand-600">×{l.quantity}</span>
                               </div>
+                              <div className="font-mono text-[11px] text-brand-600">{l.productId || '—'}</div>
                             </div>
                           ))}
                           {o.lines.length > 4 ? <div className="text-[11px] text-brand-600">+{o.lines.length - 4} more</div> : null}
@@ -212,7 +213,7 @@ export default function AdminOrdersPage() {
                       <select
                         value={o.orderStatus}
                         onChange={(e) => void update(o.orderId, { orderStatus: e.target.value as OrderStatus })}
-                        className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
+                        className="w-full rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
                       >
                         {['created', 'confirmed', 'shipped', 'delivered', 'cancelled', 'return_requested', 'return_approved', 'return_rejected', 'returned', 'replacement_requested', 'replacement_approved', 'replacement_rejected', 'replaced'].map((s) => (
                           <option key={s} value={s}>
@@ -221,11 +222,11 @@ export default function AdminOrdersPage() {
                         ))}
                       </select>
                     </td>
-                    <td className="py-2">
+                    <td className="px-3 py-2">
                       <select
                         value={o.deliveryStatus}
                         onChange={(e) => void update(o.orderId, { deliveryStatus: e.target.value as DeliveryStatus })}
-                        className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
+                        className="w-full rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
                       >
                         {['pending', 'processing', 'packed', 'shipped', 'out_for_delivery', 'delivered', 'failed'].map((s) => (
                           <option key={s} value={s}>
@@ -234,11 +235,11 @@ export default function AdminOrdersPage() {
                         ))}
                       </select>
                     </td>
-                    <td className="py-2">
+                    <td className="px-3 py-2">
                       <select
                         value={o.paymentStatus}
                         onChange={(e) => void update(o.orderId, { paymentStatus: e.target.value as PaymentStatus })}
-                        className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
+                        className="w-full rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm outline-none focus:border-brand-400"
                       >
                         {['pending', 'paid', 'failed', 'refunded'].map((s) => (
                           <option key={s} value={s}>

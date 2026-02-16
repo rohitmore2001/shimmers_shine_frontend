@@ -32,8 +32,9 @@ adminOrdersRouter.get('/', async (_req, res) => {
       couponCode: o.couponCode || null,
       currency: o.currency,
       lines: (o.lines || []).map((l) => ({
-        ...l,
-        productName: l?.productName || nameById.get(String(l.productId)) || '',
+        productId: l?.productId ? String(l.productId) : '',
+        productName: l?.productName || nameById.get(String(l?.productId || '')) || '',
+        quantity: Number(l?.quantity || 0),
       })),
       delivery: o.delivery || null,
       payment: o.payment || null,
