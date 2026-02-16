@@ -32,7 +32,7 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:grid-cols-[240px_1fr]">
+    <div className="grid gap-8 p-4 md:grid-cols-[240px_1fr] md:p-8">
       <aside className="h-fit rounded-2xl border border-brand-200 bg-white p-5 shadow-soft md:sticky md:top-20">
         <div className="font-display text-lg">Admin Panel</div>
         <div className="mt-1 text-xs text-brand-700">{admin.email}</div>
