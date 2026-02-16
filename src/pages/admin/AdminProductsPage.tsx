@@ -23,6 +23,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all')
 
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState<Product | null>(null)
@@ -130,6 +131,10 @@ export default function AdminProductsPage() {
     const map = new Map(categories.map((c) => [c.id, c.name]))
     return (idValue: string) => map.get(idValue) || idValue
   }, [categories])
+  const filteredItems = useMemo(() => {
+    if (selectedCategoryId === 'all') return items
+    return items.filter((p) => p.categoryId === selectedCategoryId)
+  }, [items, selectedCategoryId])
 
   async function onCreate(e: FormEvent) {
     e.preventDefault()
@@ -190,33 +195,48 @@ export default function AdminProductsPage() {
 
       <div className="rounded-2xl border border-brand-200 bg-white p-6 shadow-soft">
         <div className="text-sm font-semibold">All products</div>
+        <div className="mt-3 flex items-center gap-2">
+          <label className="text-xs text-brand-700">Filter by category:</label>
+          <select
+            value={selectedCategoryId}
+            onChange={(e) => setSelectedCategoryId(e.target.value)}
+            className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-1 text-xs outline-none focus:border-brand-400"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
         {error ? <div className="mt-3 text-sm text-red-700">{error}</div> : null}
         {loading ? (
           <div className="mt-3 text-sm text-brand-700">Loading…</div>
         ) : (
-          <div className="mt-4 overflow-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-auto rounded-2xl border border-brand-100">
+            <table className="w-full min-w-[900px] table-fixed text-left text-sm">
               <thead>
-                <tr className="text-xs text-brand-700">
-                  <th className="py-2">ID</th>
-                  <th className="py-2">Name</th>
-                  <th className="py-2">Category</th>
-                  <th className="py-2">Price</th>
-                  <th className="py-2">Active</th>
-                  <th className="py-2">Actions</th>
+                <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
+                  <th className="w-[120px] px-3 py-3">ID</th>
+                  <th className="w-[280px] px-3 py-3">Name</th>
+                  <th className="w-[180px] px-3 py-3">Category</th>
+                  <th className="w-[140px] px-3 py-3">Price</th>
+                  <th className="w-[100px] px-3 py-3">Active</th>
+                  <th className="w-[140px] px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((p) => (
-                  <tr key={p.id} className="border-t border-brand-100">
-                    <td className="py-2 font-mono text-xs">{p.id}</td>
-                    <td className="py-2">{p.name}</td>
-                    <td className="py-2">{categoryNameById(p.categoryId)}</td>
-                    <td className="py-2">
+                {filteredItems.map((p) => (
+                  <tr key={p.id} className="border-t border-brand-100 align-top">
+                    <td className="px-3 py-3 font-mono text-xs">{p.id}</td>
+                    <td className="px-3 py-3">{p.name}</td>
+                    <td className="px-3 py-3">{categoryNameById(p.categoryId)}</td>
+                    <td className="px-3 py-3">
                       {p.price} {p.currency}
                     </td>
-                    <td className="py-2">{p.active ? 'Yes' : 'No'}</td>
-                    <td className="py-2">
+                    <td className="px-3 py-3">{p.active ? 'Yes' : 'No'}</td>
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-1">
                         <button
                           type="button"

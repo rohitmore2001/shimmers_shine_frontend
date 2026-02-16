@@ -151,31 +151,46 @@ export default function AdminCustomersPage() {
         ) : items.length === 0 ? (
           <div className="mt-3 text-sm text-brand-700">No customers yet.</div>
         ) : (
-          <div className="mt-4 overflow-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-auto rounded-2xl border border-brand-100">
+            <table className="w-full min-w-[1200px] table-fixed text-left text-sm">
               <thead>
-                <tr className="text-xs text-brand-700">
-                  <th className="py-2">Name</th>
-                  <th className="py-2">Email</th>
-                  <th className="py-2">Phone</th>
-                  <th className="py-2">Addresses</th>
-                  <th className="py-2">Last Login</th>
-                  <th className="py-2">Active</th>
-                  <th className="py-2">Actions</th>
+                <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
+                  <th className="w-[140px] px-3 py-3">ID</th>
+                  <th className="w-[260px] px-3 py-3">Name</th>
+                  <th className="w-[280px] px-3 py-3">Email</th>
+                  <th className="w-[180px] px-3 py-3">Phone</th>
+                  <th className="w-[260px] px-3 py-3">Default Address</th>
+                  <th className="w-[140px] px-3 py-3">Addresses</th>
+                  <th className="w-[180px] px-3 py-3">Last Login</th>
+                  <th className="w-[140px] px-3 py-3">Active</th>
+                  <th className="w-[140px] px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((c) => (
-                  <tr key={c.id} className="border-t border-brand-100">
-                    <td className="py-2 font-semibold">{c.name}</td>
-                    <td className="py-2 text-xs text-brand-700">{c.email}</td>
-                    <td className="py-2 text-xs">{c.phone || '—'}</td>
-                    <td className="py-2 text-xs">{c.addressesCount}</td>
-                    <td className="py-2 text-xs text-brand-700">
-                      {c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleString() : '—'}
+                  <tr key={c.id} className="border-t border-brand-100 align-top">
+                    <td className="px-3 py-3 font-mono text-xs">{c.id}</td>
+                    <td className="px-3 py-3">{c.name}</td>
+                    <td className="px-3 py-3 text-xs text-brand-700">{c.email}</td>
+                    <td className="px-3 py-3">{c.phone || '—'}</td>
+                    <td className="px-3 py-3 text-xs text-brand-700">
+                      {c.defaultAddress ? (
+                        <div>
+                          <div className="font-semibold text-brand-900">{c.defaultAddress.fullName || '—'}</div>
+                          <div>
+                            {c.defaultAddress.addressLine || '—'}
+                            {c.defaultAddress.city ? `, ${c.defaultAddress.city}` : ''}
+                            {c.defaultAddress.pincode ? ` - ${c.defaultAddress.pincode}` : ''}
+                          </div>
+                        </div>
+                      ) : (
+                        '—'
+                      )}
                     </td>
-                    <td className="py-2 text-xs">{c.active ? 'Yes' : 'No'}</td>
-                    <td className="py-2">
+                    <td className="px-3 py-3 text-xs text-brand-600">{c.addressesCount || 0}</td>
+                    <td className="px-3 py-3 text-xs text-brand-600">{c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleString() : '—'}</td>
+                    <td className="px-3 py-3">{c.active ? 'Yes' : 'No'}</td>
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-1">
                         <button
                           type="button"

@@ -112,27 +112,23 @@ export default function AdminCategoriesPage() {
         {loading ? (
           <div className="mt-3 text-sm text-brand-700">Loading…</div>
         ) : (
-          <div className="mt-4 overflow-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-auto rounded-2xl border border-brand-100">
+            <table className="w-full min-w-[700px] table-fixed text-left text-sm">
               <thead>
-                <tr className="text-xs text-brand-700">
-                  <th className="py-2">ID</th>
-                  <th className="py-2">Name</th>
-                  <th className="py-2">Image</th>
-                  <th className="py-2">Actions</th>
+                <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
+                  <th className="w-[140px] px-3 py-3">ID</th>
+                  <th className="w-[300px] px-3 py-3">Name</th>
+                  <th className="w-[220px] px-3 py-3">Image</th>
+                  <th className="w-[140px] px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((c) => (
-                  <tr key={c.id} className="border-t border-brand-100">
-                    <td className="py-2 font-mono text-xs">{c.id}</td>
-                    <td className="py-2">{c.name}</td>
-                    <td className="py-2">
-                      <a className="text-brand-900 underline" href={c.image} target="_blank" rel="noreferrer">
-                        View
-                      </a>
-                    </td>
-                    <td className="py-2">
+                  <tr key={c.id} className="border-t border-brand-100 align-top">
+                    <td className="px-3 py-3 font-mono text-xs">{c.id}</td>
+                    <td className="px-3 py-3">{c.name}</td>
+                    <td className="px-3 py-3 font-mono text-xs text-brand-600">{c.image}</td>
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-1">
                         <button
                           type="button"

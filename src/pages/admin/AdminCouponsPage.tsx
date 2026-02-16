@@ -155,25 +155,35 @@ export default function AdminCouponsPage() {
         {loading ? (
           <div className="mt-3 text-sm text-brand-700">Loading…</div>
         ) : (
-          <div className="mt-4 overflow-auto">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-auto rounded-2xl border border-brand-100">
+            <table className="w-full min-w-[1000px] table-fixed text-left text-sm">
               <thead>
-                <tr className="text-xs text-brand-700">
-                  <th className="py-2">Code</th>
-                  <th className="py-2">Type</th>
-                  <th className="py-2">Value</th>
-                  <th className="py-2">Active</th>
-                  <th className="py-2">Actions</th>
+                <tr className="sticky top-0 z-10 bg-white text-xs text-brand-700">
+                  <th className="w-[140px] px-3 py-3">Code</th>
+                  <th className="w-[200px] px-3 py-3">Label</th>
+                  <th className="w-[280px] px-3 py-3">Description</th>
+                  <th className="w-[100px] px-3 py-3">Type</th>
+                  <th className="w-[120px] px-3 py-3">Value</th>
+                  <th className="w-[140px] px-3 py-3">Min/Subtotal</th>
+                  <th className="w-[140px] px-3 py-3">Max Discount</th>
+                  <th className="w-[140px] px-3 py-3">Active</th>
+                  <th className="w-[140px] px-3 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((c) => (
-                  <tr key={c.code} className="border-t border-brand-100">
-                    <td className="py-2 font-mono text-xs">{c.code}</td>
-                    <td className="py-2">{c.type}</td>
-                    <td className="py-2">{c.value}</td>
-                    <td className="py-2">{c.active ? 'Yes' : 'No'}</td>
-                    <td className="py-2">
+                  <tr key={c.code} className="border-t border-brand-100 align-top">
+                    <td className="px-3 py-3 font-mono text-xs">{c.code}</td>
+                    <td className="px-3 py-3">{c.label || '—'}</td>
+                    <td className="px-3 py-3 text-xs text-brand-700">{c.description || '—'}</td>
+                    <td className="px-3 py-3">{c.type}</td>
+                    <td className="px-3 py-3">
+                      {c.type === 'percentage' ? `${c.value}%` : c.value}
+                    </td>
+                    <td className="px-3 py-3 text-xs text-brand-600">{c.minSubtotal || '—'}</td>
+                    <td className="px-3 py-3 text-xs text-brand-600">{c.maxDiscount || '—'}</td>
+                    <td className="px-3 py-3">{c.active ? 'Yes' : 'No'}</td>
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-1">
                         <button
                           type="button"
