@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { adminApiClient } from '../../services/adminApiClient'
+import Modal from '../../components/Modal'
+import { Trash2 } from 'lucide-react'
 
 type OrderStatus = 'created' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'return_requested' | 'return_approved' | 'return_rejected' | 'returned' | 'replacement_requested' | 'replacement_approved' | 'replacement_rejected' | 'replaced'
 type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
@@ -63,6 +65,9 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState<AdminOrder | null>(null)
+
   async function load() {
     setLoading(true)
     setError(null)
@@ -93,6 +98,19 @@ export default function AdminOrdersPage() {
 
   async function handleReplacementAction(orderId: string, action: 'approve' | 'reject', rejectionReason?: string) {
     await adminApiClient.put(`/api/admin/orders/${orderId}/replace`, { action, rejectionReason })
+    await load()
+  }
+
+  function openDelete(o: AdminOrder) {
+    setDeleting(o)
+    setDeleteOpen(true)
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return
+    await adminApiClient.delete(`/api/admin/orders/${deleting.orderId}`)
+    setDeleteOpen(false)
+    setDeleting(null)
     await load()
   }
 
@@ -130,14 +148,18 @@ export default function AdminOrdersPage() {
               </thead>
               <tbody>
                 {items.map((o) => (
-                  <tr key={o.orderId} className="border-t border-brand-100">
+                  <tr key={o.orderId} className="border-t border-brand-100 align-top">
                     <td className="py-2 font-mono text-xs">{o.orderId}</td>
                     <td className="py-2 text-xs text-brand-700">
                       {o.lines && o.lines.length > 0 ? (
                         <div className="space-y-0.5">
                           {o.lines.slice(0, 3).map((l) => (
                             <div key={`${o.orderId}-${l.productId}`}>
-                              {(l.productName || l.productId) + (l.quantity > 1 ? ` ×${l.quantity}` : '')}
+                              <div className="text-brand-900">{l.productName || '—'}</div>
+                              <div className="font-mono text-[11px] text-brand-600">
+                                {l.productId}
+                                {l.quantity > 1 ? ` ×${l.quantity}` : ''}
+                              </div>
                             </div>
                           ))}
                           {o.lines.length > 3 ? <div className="text-[11px] text-brand-600">+{o.lines.length - 3} more</div> : null}
@@ -256,6 +278,16 @@ export default function AdminOrdersPage() {
                             Cancel
                           </button>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => openDelete(o)}
+                          title="Delete"
+                          aria-label="Delete"
+                          className="rounded-full border border-brand-200 bg-brand-50 p-2 text-brand-900 transition hover:bg-white"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -265,6 +297,33 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      <Modal open={deleteOpen} title="Delete order" onClose={() => setDeleteOpen(false)}>
+        <div className="space-y-4">
+          <div className="text-sm text-brand-800">
+            Are you sure you want to delete order <span className="font-mono">{deleting?.orderId}</span>?
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteOpen(false)
+                setDeleting(null)
+              }}
+              className="inline-flex rounded-full border border-brand-200 bg-brand-50 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-brand-900 transition hover:bg-white"
+            >
+              CANCEL
+            </button>
+            <button
+              type="button"
+              onClick={() => void confirmDelete()}
+              className="inline-flex rounded-full bg-red-700 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-red-800"
+            >
+              DELETE
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

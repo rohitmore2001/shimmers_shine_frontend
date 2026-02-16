@@ -28,6 +28,9 @@ export default function AdminCustomersPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState<Customer | null>(null)
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editing, setEditing] = useState<Customer | null>(null)
@@ -77,6 +80,19 @@ export default function AdminCustomersPage() {
     setPassword('')
     setActive(Boolean(c.active))
     setEditOpen(true)
+  }
+
+  function openDelete(c: Customer) {
+    setDeleting(c)
+    setDeleteOpen(true)
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return
+    await adminApiClient.delete(`/api/admin/customers/${deleting.id}`)
+    setDeleteOpen(false)
+    setDeleting(null)
+    await load()
   }
 
   async function onCreate(e: FormEvent) {
@@ -186,10 +202,7 @@ export default function AdminCustomersPage() {
 
                         <button
                           type="button"
-                          onClick={async () => {
-                            await adminApiClient.delete(`/api/admin/customers/${c.id}`)
-                            await load()
-                          }}
+                          onClick={() => openDelete(c)}
                           title="Delete"
                           aria-label="Delete"
                           className="rounded-full border border-brand-200 bg-brand-50 p-2 text-brand-900 transition hover:bg-white"
@@ -295,6 +308,33 @@ export default function AdminCustomersPage() {
             SAVE
           </button>
         </form>
+      </Modal>
+
+      <Modal open={deleteOpen} title="Delete customer" onClose={() => setDeleteOpen(false)}>
+        <div className="space-y-4">
+          <div className="text-sm text-brand-800">
+            Are you sure you want to delete customer <span className="font-mono">{deleting?.email}</span>?
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteOpen(false)
+                setDeleting(null)
+              }}
+              className="inline-flex rounded-full border border-brand-200 bg-brand-50 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-brand-900 transition hover:bg-white"
+            >
+              CANCEL
+            </button>
+            <button
+              type="button"
+              onClick={() => void confirmDelete()}
+              className="inline-flex rounded-full bg-red-700 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-red-800"
+            >
+              DELETE
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   )

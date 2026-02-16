@@ -24,6 +24,9 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState<Product | null>(null)
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -52,6 +55,19 @@ export default function AdminProductsPage() {
     setImageInput('')
     setRating('')
     setActive(true)
+  }
+
+  function openDelete(p: Product) {
+    setDeleting(p)
+    setDeleteOpen(true)
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return
+    await adminApiClient.delete(`/api/admin/products/${deleting.id}`)
+    setDeleteOpen(false)
+    setDeleting(null)
+    await load()
   }
 
   function addImage() {
@@ -211,7 +227,6 @@ export default function AdminProductsPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-
                         <button
                           type="button"
                           onClick={async () => {
@@ -224,13 +239,9 @@ export default function AdminProductsPage() {
                         >
                           {p.active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
-
                         <button
                           type="button"
-                          onClick={async () => {
-                            await adminApiClient.delete(`/api/admin/products/${p.id}`)
-                            await load()
-                          }}
+                          onClick={() => openDelete(p)}
                           title="Delete"
                           aria-label="Delete"
                           className="rounded-full border border-brand-200 bg-brand-50 p-2 text-brand-900 transition hover:bg-white"
@@ -503,6 +514,33 @@ export default function AdminProductsPage() {
             SAVE
           </button>
         </form>
+      </Modal>
+
+      <Modal open={deleteOpen} title="Delete product" onClose={() => setDeleteOpen(false)}>
+        <div className="space-y-4">
+          <div className="text-sm text-brand-800">
+            Are you sure you want to delete product <span className="font-mono">{deleting?.id}</span>?
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteOpen(false)
+                setDeleting(null)
+              }}
+              className="inline-flex rounded-full border border-brand-200 bg-brand-50 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-brand-900 transition hover:bg-white"
+            >
+              CANCEL
+            </button>
+            <button
+              type="button"
+              onClick={() => void confirmDelete()}
+              className="inline-flex rounded-full bg-red-700 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-red-800"
+            >
+              DELETE
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   )

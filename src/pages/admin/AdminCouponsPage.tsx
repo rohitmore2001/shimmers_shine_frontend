@@ -21,6 +21,9 @@ export default function AdminCouponsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState<Coupon | null>(null)
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [editingCode, setEditingCode] = useState<string | null>(null)
@@ -62,6 +65,19 @@ export default function AdminCouponsPage() {
     setMaxDiscount(c.maxDiscount === '' ? '' : String(c.maxDiscount))
     setActive(Boolean(c.active))
     setEditOpen(true)
+  }
+
+  function openDelete(c: Coupon) {
+    setDeleting(c)
+    setDeleteOpen(true)
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return
+    await adminApiClient.delete(`/api/admin/coupons/${deleting.code}`)
+    setDeleteOpen(false)
+    setDeleting(null)
+    await load()
   }
 
   async function load() {
@@ -182,10 +198,7 @@ export default function AdminCouponsPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={async () => {
-                            await adminApiClient.delete(`/api/admin/coupons/${c.code}`)
-                            await load()
-                          }}
+                          onClick={() => openDelete(c)}
                           title="Delete"
                           aria-label="Delete"
                           className="rounded-full border border-brand-200 bg-brand-50 p-2 text-brand-900 transition hover:bg-white"
@@ -334,6 +347,33 @@ export default function AdminCouponsPage() {
             SAVE
           </button>
         </form>
+      </Modal>
+
+      <Modal open={deleteOpen} title="Delete coupon" onClose={() => setDeleteOpen(false)}>
+        <div className="space-y-4">
+          <div className="text-sm text-brand-800">
+            Are you sure you want to delete coupon <span className="font-mono">{deleting?.code}</span>?
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteOpen(false)
+                setDeleting(null)
+              }}
+              className="inline-flex rounded-full border border-brand-200 bg-brand-50 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-brand-900 transition hover:bg-white"
+            >
+              CANCEL
+            </button>
+            <button
+              type="button"
+              onClick={() => void confirmDelete()}
+              className="inline-flex rounded-full bg-red-700 px-5 py-2 text-xs font-semibold tracking-[0.18em] text-white transition hover:bg-red-800"
+            >
+              DELETE
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   )

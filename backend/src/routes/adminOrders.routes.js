@@ -130,3 +130,10 @@ adminOrdersRouter.put('/:orderId/replace', async (req, res) => {
     replacementRequest: updated.replacementRequest,
   })
 })
+
+adminOrdersRouter.delete('/:orderId', async (req, res) => {
+  const orderId = String(req.params.orderId)
+  const deleted = await Order.findOneAndDelete({ orderId }).lean()
+  if (!deleted) return res.status(404).json({ message: 'Not found' })
+  return res.json({ ok: true })
+})
